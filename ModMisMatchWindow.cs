@@ -17,21 +17,25 @@ namespace ModComparerPatch
         public override void DoWindowContents(Rect inRect)
         {
             //inRect는 기본 사각형 크기
-            string name = null; // 할당해주자
-            Rect Title = new Rect(inRect.x + 30, inRect.y - 30, Text.CalcSize(name).x, Text.CalcSize(name).y);
+            string name = "ASDF"; // 할당해주자
+            //Rect Title = new Rect(inRect.x + 30, inRect.y - 30, Text.CalcSize(name).x, Text.CalcSize(name).y);
+            Rect Title = inRect.AtZero();
+            Title.x = 10f;
+            //Log.Message(string.Format("{0} {1} {2} {3}", Title.x, inRect.x, Title.y, inRect.y));
             Widgets.Label(Title, name);
+            //Texture2D texture2D = new Texture2D()
 
-            Rect SaveOutRect = new Rect(inRect.x + 10, inRect.x - inRect.height + 20, 40f, 60f); // 겉 테두리
-            Rect viewRect = new Rect(0f, 0f, SaveOutRect.width - 16f, 300);
-            Widgets.BeginScrollView(SaveOutRect, ref this.ScrollPosition, viewRect, true);
-            float yPos = 6f;
-            float num2 = this.ScrollPosition.y - 30f; // ?
-            float num3 = this.ScrollPosition.y + SaveOutRect.height;
-            foreach (ModElement modElement in ModElementContainer.elementList)
+            Rect outRect = inRect.AtZero();
+            
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 160f);
+            Widgets.BeginScrollView(outRect, ref this.ScrollPosition, viewRect, true);
+            float yPos = 0f;
+            for(int i = 0; i < 50; i++)
             {
-                Rect singleModRect = new Rect(0f, yPos, viewRect.width, 30f);
-                Widgets.Label(singleModRect, "Test");
-                yPos += 30f;
+                Rect rect = new Rect(15f, yPos, 50f, 50f);
+                Widgets.Label(rect, "Test");
+                GUI.Box(rect, GUIContent.none);
+                yPos += 15f;
             }
             Widgets.EndScrollView();
             
