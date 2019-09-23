@@ -32,7 +32,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
+<<<<<<< HEAD
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\294100\1752864297\Assemblies\0Harmony.dll</HintPath>
+=======
+      <HintPath>..\..\..\Downloads\net35\0Harmony.dll</HintPath>
+>>>>>>> 3d534f7dcfddd88d4a294a78c8a571d542c45ffc
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -58,7 +62,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetDir)$(ProjectName).dll" "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\TEst\Assemblies\$(ProjectName).dll"</PostBuildEvent>
   </PropertyGroup>
 </Project>

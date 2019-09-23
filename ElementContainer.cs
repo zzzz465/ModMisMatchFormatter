@@ -17,7 +17,7 @@ namespace ModComparerPatch
     {
         ContainerType ContainerType { get; }
 
-        public ElementList elementList = new ElementList();
+        public List<ModElement> elementList = new List<ModElement>();
         public ElementContainer(ContainerType containerType)
         {
             this.ContainerType = containerType;
@@ -26,7 +26,7 @@ namespace ModComparerPatch
 
         public void Append(ModElement elem)
         {
-            elementList.Append(elem);
+            elementList.Add(elem);
         }
 
         public IEnumerable<ModElement> modElements
