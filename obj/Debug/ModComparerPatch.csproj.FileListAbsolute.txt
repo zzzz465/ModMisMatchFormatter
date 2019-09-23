@@ -2,7 +2,6 @@ C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\obj\Debug\ModComp
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\obj\Debug\ModComparerPatch.csproj.CoreCompileInputs.cache
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\ModComparerPatch.dll
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\ModComparerPatch.pdb
-C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\0Harmony.dll
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\Assembly-CSharp.dll
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\UnityEngine.dll
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\TextMeshPro-1.0.55.56.0b11.dll
@@ -13,3 +12,5 @@ C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\bin\Debug\UnityEn
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\obj\Debug\ModComparerPatch.csproj.CopyComplete
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\obj\Debug\ModComparerPatch.dll
 C:\Users\stopc\Documents\Git\ModComparerPatch\ModComparerPatch\obj\Debug\ModComparerPatch.pdb
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\test\Assemblies\ModComparerPatch.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\test\Assemblies\ModComparerPatch.pdb
