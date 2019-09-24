@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ModComparerPatch.Interfaces;
 using System.Collections;
 using Verse;
 
@@ -70,51 +69,6 @@ namespace ModComparerPatch
                     }
                 }
             }
-        }
-    }
-
-    public class ElementList : IElementEnumerable
-    {
-        List<ModElement> InnerList = new List<ModElement>();
-        IEnumerator ModElementEnumerator;
-        public ModElement Before
-        {
-            get
-            {
-                int index = InnerList.IndexOf(ModElementEnumerator.Current as ModElement);
-                if (index == 0)
-                    return null;
-                return InnerList[index - 1];
-            }
-        }
-        public ModElement After
-        {
-            get
-            {
-                int index = InnerList.IndexOf(ModElementEnumerator.Current as ModElement);
-                if (index == InnerList.Count - 1)
-                    return null;
-                return InnerList[index + 1];
-            }
-        }
-
-        public IEnumerator GetEnumerator()
-        {
-            if (ModElementEnumerator == null)
-                ModElementEnumerator = InnerList.GetEnumerator();
-            return ModElementEnumerator;
-        }
-        public ElementList()
-        {
-
-        }
-
-        public void Append(ModElement element)
-        {
-            if (!InnerList.Contains(element))
-                InnerList.Add(element);
-            else
-                Log.Error("tried to append Element " + element.ToString() + " but the same item exist.");
         }
     }
 }

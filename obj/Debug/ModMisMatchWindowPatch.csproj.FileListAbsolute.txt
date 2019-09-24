@@ -1,0 +1,7 @@
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\TestMod\Assemblies\ModMisMatchWindowPatch.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\TestMod\Assemblies\ModMisMatchWindowPatch.pdb
+C:\Users\stopc\Documents\Repos\ModMisMatchWindowPatch\obj\Debug\ModMisMatchWindowPatch.csprojAssemblyReference.cache
+C:\Users\stopc\Documents\Repos\ModMisMatchWindowPatch\obj\Debug\ModMisMatchWindowPatch.csproj.CoreCompileInputs.cache
+C:\Users\stopc\Documents\Repos\ModMisMatchWindowPatch\obj\Debug\ModMisMatchWindowPatch.csproj.CopyComplete
+C:\Users\stopc\Documents\Repos\ModMisMatchWindowPatch\obj\Debug\ModMisMatchWindowPatch.dll
+C:\Users\stopc\Documents\Repos\ModMisMatchWindowPatch\obj\Debug\ModMisMatchWindowPatch.pdb
