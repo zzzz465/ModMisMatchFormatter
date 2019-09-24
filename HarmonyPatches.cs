@@ -7,7 +7,7 @@ using Verse;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace ModComparerPatch
+namespace ModMisMatchWindowPatch
 {
     [StaticConstructorOnStartup]
     public static class HarmonyPatches

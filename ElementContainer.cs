@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections;
 using Verse;
 
-namespace ModComparerPatch
+namespace ModMisMatchWindowPatch
 {
     public enum ContainerType
     {

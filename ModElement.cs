@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace ModComparerPatch
+namespace ModMisMatchWindowPatch
 {
     public class ModElement
     {
@@ -12,6 +12,12 @@ namespace ModComparerPatch
         public string ModName { get; }
         public int LoadOrder { get; private set; }
         public bool isActivated { get; private set; }
+        /// <summary>
+        /// True = 추가(초록색), False = 삭제(빨간색), 모름 = null;
+        /// </summary>
+        public bool? isAddState { get; set; }
+        [Obsolete]
+        public Color color { get; private set; }
         public Color ElementBoxColor
         {
             get
@@ -25,12 +31,19 @@ namespace ModComparerPatch
             }
         }
 
-        internal ModElement(string ModName, int LoadOrder, bool isActivated, bool isPlaceHolder = true)
+        internal ModElement(string ModName, int LoadOrder, bool isActivated, bool isPlaceHolder = true, bool? isAddState = null)
         {
             this.isPlaceHolder = isPlaceHolder;
             this.ModName = ModName;
             this.LoadOrder = LoadOrder;
             this.isActivated = isActivated;
+            this.isAddState = isAddState;
+        }
+        [Obsolete]
+        public ModElement SetColor(Color color)
+        {
+            this.color = color;
+            return this;
         }
     }
 }

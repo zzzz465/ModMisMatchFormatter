@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 using Verse;
 
-namespace ModComparerPatch
+namespace ModMisMatchWindowPatch
 {
     [StaticConstructorOnStartup]
     public class testcode : MonoBehaviour
