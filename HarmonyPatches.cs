@@ -24,7 +24,7 @@ namespace ModMisMatchWindowPatch
         {
             if (!ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _))
             {
-                Find.WindowStack.Add(new ModMisMatchWindow());
+                Find.WindowStack.Add(new ModMisMatchWindow(confirmedAction));
                 __result = true;
                 return false;
             }
