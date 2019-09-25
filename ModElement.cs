@@ -16,8 +16,7 @@ namespace ModMisMatchWindowPatch
         /// True = 추가(초록색), False = 삭제(빨간색), 모름 = null;
         /// </summary>
         public bool? isAddState { get; set; }
-        [Obsolete]
-        public Color color { get; private set; }
+        public Color? color { get; private set; }
         public Color ElementBoxColor
         {
             get
@@ -38,8 +37,8 @@ namespace ModMisMatchWindowPatch
             this.LoadOrder = LoadOrder;
             this.isActivated = isActivated;
             this.isAddState = isAddState;
+            this.color = null;
         }
-        [Obsolete]
         public ModElement SetColor(Color color)
         {
             this.color = color;
