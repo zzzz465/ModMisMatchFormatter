@@ -15,6 +15,7 @@ namespace ModMisMatchWindowPatch
         static Vector2 scrollPosition = Vector2.zero;
         List<ModElement> ActiveMods = new List<ModElement>();
         List<ModElement> SaveMods = new List<ModElement>();
+		Action confirmAction;
 
         public override Vector2 InitialSize
 		{
@@ -25,11 +26,12 @@ namespace ModMisMatchWindowPatch
 		}
 
 		
-        public ModMisMatchWindow()
+        public ModMisMatchWindow(Action confirmAction)
         {
             ActiveMods = new List<ModElement>();
             SaveMods = new List<ModElement>();
             this.doCloseX = true;
+			this.confirmAction = confirmAction;
         }
 
         public override void PreOpen()
@@ -133,7 +135,6 @@ namespace ModMisMatchWindowPatch
                 SaveCurrent.isAddState = false;
                 SaveMods.Add(SaveCurrent);
             }
-                //SaveMods.Add(SaveModsToAdd.Pop() { i});
             
             while (ActiveModsToAdd.Count > 0)
             {
@@ -141,18 +142,17 @@ namespace ModMisMatchWindowPatch
                 ActiveCurrent.isAddState = true;
                 ActiveMods.Add(ActiveCurrent);
             }
-                //ActiveMods.Add(ActiveModsToAdd.Pop());
 
         }
         public override void DoWindowContents(Rect canvas)
         {
             int ItemCount = SaveMods.Count;
-            GUIStyle TitleStyle = Text.CurFontStyle;
-            TitleStyle.alignment = TextAnchor.UpperCenter;
+            GUIStyle TitleStyle = MyWidgets.CenterAlignmentStyle;
             
             //윗쪽 타이틀 설정
 			Rect TextBox = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
             Widgets.Label(TextBox, "ModsMismatchWarningTitle".Translate());
+			GUI.Label(TextBox, "ModsMismatchWarningTitle".Translate(), MyWidgets.CenterAlignmentStyle);
 
             //1개 모드 사이즈
             float RectWidth = canvas.width / 2 - 40;
@@ -162,13 +162,16 @@ namespace ModMisMatchWindowPatch
             //막대기 사이즈
             Rect Bar = new Rect(0, 0, RectWidth, 2f);
 
+			//하위 버튼의 크기
+			Vector2 ButtonSize = new Vector2(RectWidth - 50f, 40f);
+
             //좌측(Save)
             GUI.contentColor = Color.white;
 			Rect LeftSaveRect = new Rect((canvas.width / 2) - RectWidth, TextBox.yMax, RectWidth, canvas.height - TextBox.height - 60); // 이걸 가지고 다른 모든 상자들의 길이를 측정함
 			Rect LeftinSaveRect = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin, LeftSaveRect.width - 18f, SingleModItemRect.height * ItemCount);
             Widgets.DrawBoxSolid(LeftSaveRect, MyWidgets.Background);
 
-            Rect LeftTitle = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin - 22f, RectWidth, 22f);
+            Rect LeftTitle = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin - 26f, RectWidth - 18f, 26f); // 18f는 스크롤바 크기
             GUI.Label(LeftTitle, "SaveModListTitle".Translate(), TitleStyle);
             //Widgets.DrawBoxSolid(LeftTitle, Color.white);
             //MyWidgets.DrawSolidBox(LeftSaveRect, MyWidgets.Background);
@@ -179,12 +182,12 @@ namespace ModMisMatchWindowPatch
             Rect RightinActiveRect = new Rect(RightActiveRect.xMin, RightActiveRect.yMin, RightActiveRect.width, ItemCount * SingleModItemRect.height); // RightActiveRect에 종속
             Widgets.DrawBoxSolid(RightActiveRect, MyWidgets.Background);
 
-            Rect RightTitle = new Rect(RightActiveRect.xMin, RightActiveRect.yMin - 22f, RectWidth, 22f);
+            Rect RightTitle = new Rect(RightActiveRect.xMin, RightActiveRect.yMin - 26f, RectWidth - 18f, 26f);
             GUI.Label(RightTitle, "ActiveModListTitle".Translate(), TitleStyle);
             //개수 안맞으면 PlaceHolder 넣어줘야함
 
 
-            //Active mod 세팅
+            //Save mod 세팅
             Widgets.BeginScrollView(LeftSaveRect, ref scrollPosition, LeftinSaveRect, true);
 			SingleModItemRect.position = new Vector2(LeftinSaveRect.x, LeftinSaveRect.y); // 위치 초기화
             Bar.position = new Vector2(SingleModItemRect.x, SingleModItemRect.yMax + 1f);
@@ -202,6 +205,7 @@ namespace ModMisMatchWindowPatch
 			}
             Widgets.EndScrollView();
 
+			//Active mod 세팅
             Widgets.BeginScrollView(RightActiveRect, ref scrollPosition, RightinActiveRect, false);
             SingleModItemRect.position = new Vector2(RightinActiveRect.xMin, RightinActiveRect.yMin); // 위치 초기화
             Bar.position = new Vector2(SingleModItemRect.x, SingleModItemRect.yMax + 1f);
@@ -216,6 +220,30 @@ namespace ModMisMatchWindowPatch
                 Bar.y = SingleModItemRect.yMax + 1f;
             }
             Widgets.EndScrollView();
+
+			//하위 버튼 세팅
+			
+			//LoadFromSave 버튼 위치
+			float ButtonXPos = LeftSaveRect.xMin + ( (LeftSaveRect.width - ButtonSize.x) / 2 ) - 7f; // micro control. I'm lack of math skill.
+			float ButtonYPos = canvas.yMax - 10f - ButtonSize.y;
+
+			//LoadFromSave 버튼
+			Rect LoadFromSaveButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
+			if(Widgets.ButtonText(LoadFromSaveButton, "ChangeLoadedMods".Translate(), true, true, true))
+			{
+				int num = ModLister.InstalledModsListHash(false);
+				ModsConfig.SetActiveToList(ScribeMetaHeaderUtility.loadedModIdsList);
+				ModsConfig.Save();
+				ModsConfig.RestartFromChangedMods();
+			}
+			
+			//LoadAnyway 버튼
+			ButtonXPos = RightActiveRect.xMin + ( (RightActiveRect.width - ButtonSize.x) / 2 ) - 7f;
+			Rect BackButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
+			if(Widgets.ButtonText(BackButton, "LoadAnyway".Translate(), true, true, true))
+			{
+				confirmAction();
+			}
 		}
 
         int GetModRectNeededCount(List<ModElement> element1, List<ModElement> element2)

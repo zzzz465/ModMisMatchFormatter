@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Verse;
 using UnityEngine;
+using System.IO;
 
 namespace ModMisMatchWindowPatch
 {
@@ -11,9 +12,11 @@ namespace ModMisMatchWindowPatch
     {
         static GUIStyle PlusOrMinusStyle;
         static GUIStyle ModNameStyle;
+        public static GUIStyle CenterAlignmentStyle;
         static Texture2D RedTexture; // #4b1818
         static Texture2D GreenTexture; // #373d29
         static Texture2D BackgroundTexture; // #1e1e1e
+        static Texture2D PlaceHolderTexture;
         public static Color Red = new Color(0.29f, 0.09f, 0.09f, 1);
         public static Color Green = new Color(0.29f, 0.33f, 0.19f, 1);
         public static Color Background = new Color(0.11f, 0.11f, 0.11f, 1);
@@ -26,47 +29,46 @@ namespace ModMisMatchWindowPatch
 
             ModNameStyle = Text.CurFontStyle;
             ModNameStyle.alignment = TextAnchor.MiddleLeft;
-            //PlusOrMinusStyle.fontSize = 16; // 이거 수정해줘야함
 
-            //텍스쳐들 초기화 코드 여기에 넣어주자
-            /*
-            RedTexture = new Texture2D(1,1);
-            RedTexture.SetPixel(0, 0, new Color32(75, 24, 24, 1));
-            RedTexture.Apply();
-            RedTexture.Resize(100, 100);
+            CenterAlignmentStyle = Text.CurFontStyle;
+            CenterAlignmentStyle.alignment = TextAnchor.MiddleCenter;
+            //에러가 날수도 있나?
+            
+            PlaceHolderTexture = new Texture2D(100, 100);
+            string FolderPath = Path.Combine(LoadedModManager.RunningMods.ToList().Where(mod => mod.Name == "Readable SaveModList").Select(item => item.RootDir).FirstOrDefault(), "Resources");
+            byte[] ImageData = File.ReadAllBytes(Path.Combine(FolderPath, "PlaceHolderImage.png"));
+            PlaceHolderTexture.LoadImage(ImageData);
 
-            GreenTexture = new Texture2D(1,1);
-            GreenTexture.SetPixel(0, 0, new Color32(75, 86, 50, 1));
-            GreenTexture.Apply();
-            GreenTexture.Resize(100, 100);
-
-            BackgroundTexture = new Texture2D(1,1);
-            BackgroundTexture.SetPixel(0, 0, new Color32(30, 30, 30, 1));
-            BackgroundTexture.Apply();
-            BackgroundTexture.Resize(100, 100);
-            */
         }
         public static void DoLabelBox(Rect rect, ModElement element)
         {
             //Color OldColor = GUI.backgroundColor;
             //GUI.backgroundColor = Background;
             //GUI.Label(rect, GUIContent.none);
+            bool OverrideColor = element.color != null;
             
             float width = PlusOrMinusStyle.CalcSize(new GUIContent("x")).x;
             Rect LeftBox = new Rect(rect.xMin, rect.yMin, width, rect.height);
             if (element.isAddState == true)
             {
-                Widgets.DrawBoxSolid(rect, Green);
+                if(OverrideColor)
+                    Widgets.DrawBoxSolid(rect, (Color)element.color);
+                else
+                    Widgets.DrawBoxSolid(rect, Green);
                 GUI.Label(LeftBox, "+", PlusOrMinusStyle);
             }
             else if (element.isAddState == false)
             {
-                Widgets.DrawBoxSolid(rect, Red);
+                if(OverrideColor)
+                    Widgets.DrawBoxSolid(rect, (Color)element.color);
+                else
+                    Widgets.DrawBoxSolid(rect, Red);
                 GUI.Label(LeftBox, "-", PlusOrMinusStyle);
             }
-            else
-            {
 
+            if(element.isPlaceHolder)
+            {
+                //GUI.Box(rect, BackgroundTexture);
             }
 
             Rect RightBox = new Rect(LeftBox.xMax, rect.yMin, rect.width - LeftBox.width, rect.height); // rect와 LeftBox에 종속

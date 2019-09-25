@@ -21,8 +21,8 @@ namespace ModMisMatchWindowPatch
             {
                 if (Find.WindowStack.IsOpen(typeof(ModMisMatchWindow)))
                     Find.WindowStack.TryRemove(typeof(ModMisMatchWindow));
-                else
-                    Find.WindowStack.Add(new ModMisMatchWindow());
+                //else
+                    //Find.WindowStack.Add(new ModMisMatchWindow());
             }
 
             if (Input.GetKeyDown(KeyCode.R))
