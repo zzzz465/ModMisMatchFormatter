@@ -15,6 +15,7 @@ namespace ModMisMatchWindowPatch
         static Vector2 scrollPosition = Vector2.zero;
         List<ModElement> ActiveMods = new List<ModElement>();
         List<ModElement> SaveMods = new List<ModElement>();
+		Action confirmAction;
 
         public override Vector2 InitialSize
 		{
@@ -25,11 +26,12 @@ namespace ModMisMatchWindowPatch
 		}
 
 		
-        public ModMisMatchWindow()
+        public ModMisMatchWindow(Action confirmAction)
         {
             ActiveMods = new List<ModElement>();
             SaveMods = new List<ModElement>();
             this.doCloseX = true;
+			this.confirmAction = confirmAction;
         }
 
         public override void PreOpen()
@@ -133,7 +135,6 @@ namespace ModMisMatchWindowPatch
                 SaveCurrent.isAddState = false;
                 SaveMods.Add(SaveCurrent);
             }
-                //SaveMods.Add(SaveModsToAdd.Pop() { i});
             
             while (ActiveModsToAdd.Count > 0)
             {
@@ -141,7 +142,6 @@ namespace ModMisMatchWindowPatch
                 ActiveCurrent.isAddState = true;
                 ActiveMods.Add(ActiveCurrent);
             }
-                //ActiveMods.Add(ActiveModsToAdd.Pop());
 
         }
         public override void DoWindowContents(Rect canvas)
@@ -161,6 +161,9 @@ namespace ModMisMatchWindowPatch
 
             //막대기 사이즈
             Rect Bar = new Rect(0, 0, RectWidth, 2f);
+
+			//하위 버튼의 크기
+			Vector2 ButtonSize = new Vector2(30f, 20f);
 
             //좌측(Save)
             GUI.contentColor = Color.white;
@@ -184,7 +187,7 @@ namespace ModMisMatchWindowPatch
             //개수 안맞으면 PlaceHolder 넣어줘야함
 
 
-            //Active mod 세팅
+            //Save mod 세팅
             Widgets.BeginScrollView(LeftSaveRect, ref scrollPosition, LeftinSaveRect, true);
 			SingleModItemRect.position = new Vector2(LeftinSaveRect.x, LeftinSaveRect.y); // 위치 초기화
             Bar.position = new Vector2(SingleModItemRect.x, SingleModItemRect.yMax + 1f);
@@ -202,6 +205,7 @@ namespace ModMisMatchWindowPatch
 			}
             Widgets.EndScrollView();
 
+			//Active mod 세팅
             Widgets.BeginScrollView(RightActiveRect, ref scrollPosition, RightinActiveRect, false);
             SingleModItemRect.position = new Vector2(RightinActiveRect.xMin, RightinActiveRect.yMin); // 위치 초기화
             Bar.position = new Vector2(SingleModItemRect.x, SingleModItemRect.yMax + 1f);
@@ -216,6 +220,30 @@ namespace ModMisMatchWindowPatch
                 Bar.y = SingleModItemRect.yMax + 1f;
             }
             Widgets.EndScrollView();
+
+			//하위 버튼 세팅
+			
+			//LoadFromSave 버튼 위치
+			float ButtonXPos = LeftSaveRect.xMin + ButtonSize.x / 2;
+			float ButtonYPos = canvas.yMax - 10f - ButtonSize.y;
+
+			//LoadFromSave 버튼
+			Rect LoadFromSaveButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
+			if(Widgets.ButtonText(LoadFromSaveButton, "ChangeLoadedMods".Translate(), false, true, true))
+			{
+				int num = ModLister.InstalledModsListHash(false);
+				ModsConfig.SetActiveToList(ScribeMetaHeaderUtility.loadedModIdsList);
+				ModsConfig.Save();
+				ModsConfig.RestartFromChangedMods();
+			}
+			
+			//LoadAnyway 버튼
+			ButtonXPos = RightActiveRect.xMin + ButtonSize.x / 2;
+			Rect BackButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
+			if(Widgets.ButtonText(BackButton, "LoadAnyway".Translate(), true, true, true))
+			{
+				confirmAction();
+			}
 		}
 
         int GetModRectNeededCount(List<ModElement> element1, List<ModElement> element2)
