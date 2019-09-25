@@ -147,12 +147,12 @@ namespace ModMisMatchWindowPatch
         public override void DoWindowContents(Rect canvas)
         {
             int ItemCount = SaveMods.Count;
-            GUIStyle TitleStyle = Text.CurFontStyle;
-            TitleStyle.alignment = TextAnchor.UpperCenter;
+            GUIStyle TitleStyle = MyWidgets.CenterAlignmentStyle;
             
             //윗쪽 타이틀 설정
 			Rect TextBox = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
             Widgets.Label(TextBox, "ModsMismatchWarningTitle".Translate());
+			GUI.Label(TextBox, "ModsMismatchWarningTitle".Translate(), MyWidgets.CenterAlignmentStyle);
 
             //1개 모드 사이즈
             float RectWidth = canvas.width / 2 - 40;
@@ -163,7 +163,7 @@ namespace ModMisMatchWindowPatch
             Rect Bar = new Rect(0, 0, RectWidth, 2f);
 
 			//하위 버튼의 크기
-			Vector2 ButtonSize = new Vector2(30f, 20f);
+			Vector2 ButtonSize = new Vector2(RectWidth - 50f, 40f);
 
             //좌측(Save)
             GUI.contentColor = Color.white;
@@ -171,7 +171,7 @@ namespace ModMisMatchWindowPatch
 			Rect LeftinSaveRect = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin, LeftSaveRect.width - 18f, SingleModItemRect.height * ItemCount);
             Widgets.DrawBoxSolid(LeftSaveRect, MyWidgets.Background);
 
-            Rect LeftTitle = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin - 22f, RectWidth, 22f);
+            Rect LeftTitle = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin - 26f, RectWidth - 18f, 26f); // 18f는 스크롤바 크기
             GUI.Label(LeftTitle, "SaveModListTitle".Translate(), TitleStyle);
             //Widgets.DrawBoxSolid(LeftTitle, Color.white);
             //MyWidgets.DrawSolidBox(LeftSaveRect, MyWidgets.Background);
@@ -182,7 +182,7 @@ namespace ModMisMatchWindowPatch
             Rect RightinActiveRect = new Rect(RightActiveRect.xMin, RightActiveRect.yMin, RightActiveRect.width, ItemCount * SingleModItemRect.height); // RightActiveRect에 종속
             Widgets.DrawBoxSolid(RightActiveRect, MyWidgets.Background);
 
-            Rect RightTitle = new Rect(RightActiveRect.xMin, RightActiveRect.yMin - 22f, RectWidth, 22f);
+            Rect RightTitle = new Rect(RightActiveRect.xMin, RightActiveRect.yMin - 26f, RectWidth - 18f, 26f);
             GUI.Label(RightTitle, "ActiveModListTitle".Translate(), TitleStyle);
             //개수 안맞으면 PlaceHolder 넣어줘야함
 
@@ -224,12 +224,12 @@ namespace ModMisMatchWindowPatch
 			//하위 버튼 세팅
 			
 			//LoadFromSave 버튼 위치
-			float ButtonXPos = LeftSaveRect.xMin + ButtonSize.x / 2;
+			float ButtonXPos = LeftSaveRect.xMin + ( (LeftSaveRect.width - ButtonSize.x) / 2 ) - 7f; // micro control. I'm lack of math skill.
 			float ButtonYPos = canvas.yMax - 10f - ButtonSize.y;
 
 			//LoadFromSave 버튼
 			Rect LoadFromSaveButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
-			if(Widgets.ButtonText(LoadFromSaveButton, "ChangeLoadedMods".Translate(), false, true, true))
+			if(Widgets.ButtonText(LoadFromSaveButton, "ChangeLoadedMods".Translate(), true, true, true))
 			{
 				int num = ModLister.InstalledModsListHash(false);
 				ModsConfig.SetActiveToList(ScribeMetaHeaderUtility.loadedModIdsList);
@@ -238,7 +238,7 @@ namespace ModMisMatchWindowPatch
 			}
 			
 			//LoadAnyway 버튼
-			ButtonXPos = RightActiveRect.xMin + ButtonSize.x / 2;
+			ButtonXPos = RightActiveRect.xMin + ( (RightActiveRect.width - ButtonSize.x) / 2 ) - 7f;
 			Rect BackButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
 			if(Widgets.ButtonText(BackButton, "LoadAnyway".Translate(), true, true, true))
 			{
