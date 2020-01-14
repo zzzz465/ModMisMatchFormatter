@@ -59,8 +59,6 @@ namespace ModMisMatchWindowPatch
             ActiveModsToAdd.Reverse();
             SaveModsToAdd.Reverse();
 
-            IEnumerator<ModElement> ActiveEnumerator = ActiveModsToAdd.GetEnumerator();
-            ActiveEnumerator.MoveNext();
             ModElement SaveCurrent = SaveModsToAdd.Pop();
             ModElement ActiveCurrent = ActiveModsToAdd.Pop();
             int i = 0;

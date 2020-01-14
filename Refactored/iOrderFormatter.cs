@@ -5,6 +5,6 @@ namespace Madeline.ModMismatchFormatter
 {
     public interface iOrderFormatter
     {
-        void Arrange(ref List<Mod> fromsave, ref List<Mod> loaded);
+        IEnumerable<ModPair> GetFormattedModPairs(List<Mod> fromSave, List<Mod> fromLoaded);
     }
 }

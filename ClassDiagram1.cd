@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ModMisMatchWindowPatch.ElementContainer" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQAAQAAAAIAAAAAAAAAQAAAAAAAAEAAAA=</HashCode>
+      <FileName>ElementContainer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModMisMatchWindowPatch.HarmonyPatches" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HarmonyPatches.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModMisMatchWindowPatch.ListExtension" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ListExtension.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModMisMatchWindowPatch.ModElement" Collapsed="true">
+    <Position X="0.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAgQQAgAAAAACAQAgAAAAAAAA=</HashCode>
+      <FileName>ModElement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModMisMatchWindowPatch.ModMisMatchWindow">
+    <Position X="4.5" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAIAAIAAAAAIAAAAAAQEQAAAAAAIAAQAAAAAAAAABAA=</HashCode>
+      <FileName>ModMisMatchWindow.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModMisMatchWindowPatch.MyWidgets" Collapsed="true">
+    <Position X="4" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgBAAAAAAEABABAAAAAAAAQwABAAAEQ=</HashCode>
+      <FileName>MyWidgets.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ModMisMatchWindowPatch.testcode" Collapsed="true">
+    <Position X="7.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>testcode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="ModMisMatchWindowPatch.ContainerType" Collapsed="true">
+    <Position X="0.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
+      <FileName>ElementContainer.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="맑은 고딕" Size="9" />
+</ClassDiagram>

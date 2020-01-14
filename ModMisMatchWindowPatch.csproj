@@ -30,6 +30,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>Dependencies\0Harmony.dll</HintPath>
@@ -55,7 +58,15 @@
     <Compile Include="ModMisMatchWindow.cs" />
     <Compile Include="MyWidgets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Refactored\iOrderFormatter.cs" />
+    <Compile Include="Refactored\Mod.cs" />
+    <Compile Include="Refactored\ModPair.cs" />
+    <Compile Include="Refactored\ModPresenter.cs" />
+    <Compile Include="Refactored\TestCase.cs" />
     <Compile Include="testcode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
