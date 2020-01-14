@@ -10,7 +10,7 @@ using System.Reflection;
 namespace ModMisMatchWindowPatch
 {
     public class ModMisMatchWindow : Window
-    {
+    { // view
         static ElementContainer ModElementContainer = new ElementContainer(ContainerType.Active);
         static Vector2 scrollPosition = Vector2.zero;
         List<ModElement> ActiveMods = new List<ModElement>();
