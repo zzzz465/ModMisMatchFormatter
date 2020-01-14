@@ -16,95 +16,110 @@ namespace Madeline.ModMismatchFormatter
             ModsFromSave = EnsureModIsValidOrderAndOmitPlaceHolder(ModsFromSave);
             ModsFromActive = EnsureModIsValidOrderAndOmitPlaceHolder(ModsFromActive);
 
+            List<Mod> FormattedSaveMods = new List<Mod>();
+            List<Mod> FormattedActiveMods = new List<Mod>();
+
             List<ModPair> modPairList = new List<ModPair>();
 
-            var SaveEnumerator = ModsFromSave.GetEnumerator();
-            var ActiveEnumerator = ModsFromActive.GetEnumerator();
-
-            while(SaveEnumerator.MoveNext() && ActiveEnumerator.MoveNext())
-            {  
-                var SaveCurrent = SaveEnumerator.Current; // index is always 0
-                var ActiveCurrent = ActiveEnumerator.Current; // index is always 0
-
-                if(ModsFromSave.IndexOf(SaveCurrent) != 0 || ModsFromActive.IndexOf(ActiveCurrent) != 0)
-                    throw new Exception("Error in sorting logic.");
-
-                if(SaveCurrent.Identifier == ActiveCurrent.Identifier)
+            /*
+            LoadedModManager.RunningMods.ToList().ForEach(item => ActiveModsToAdd.Add(new ModElement(item.Name, item.loadOrder, true, false)));
+            if (ScribeMetaHeaderUtility.loadedModNamesList != null)
+            {
+                int k = 0;
+                ScribeMetaHeaderUtility.loadedModNamesList.ForEach(item =>
                 {
-                    modPairList.Add(new ModPair(SaveCurrent, ActiveCurrent));
+                    SaveModsToAdd.Add(new ModElement(item, k, false, false));
+                    k++;
+                });
+            }
+            */
+            //ActiveMods.AddRange(ActiveModsToAdd);
+            //SaveMods.AddRange(SaveModsToAdd);
+            //Pop은 뒤에서 부터 가져옴. FIFO 방식 (FILO 아님)
+            /*
+            ActiveModsToAdd.Reverse();
+            SaveModsToAdd.Reverse();
+            */
+
+            ModsFromSave.Reverse();
+            ModsFromActive.Reverse();
+            Mod SaveCurrent = ModsFromSave.Pop();
+            Mod ActiveCurrent = ModsFromActive.Pop();
+
+            while(ModsFromSave.Count > 0 && ModsFromActive.Count > 0) // 여기서 요소가 있다는 것을 보장함, 대신 다 끝나고 1개 또는 0개가 남을 수 있음
+            {
+                if(SaveCurrent.ModName == ActiveCurrent.ModName) // 동일할경우(그냥 추가하면 됨)
+                {
+                    FormattedActiveMods.Add(ActiveCurrent);
+                    FormattedSaveMods.Add(SaveCurrent);
+                    SaveCurrent = ModsFromSave.Pop();
+                    ActiveCurrent = ModsFromActive.Pop();
                     continue;
                 }
 
-                var saveModInActiveModList = ModsFromActive.Find(mod => mod.Identifier == SaveCurrent.Identifier);
-                var activeModInSaveModList = ModsFromActive.Find(mod => mod.Identifier == ActiveCurrent.Identifier);
-
-                //둘다 존재할경우
-                if(saveModInActiveModList != null && activeModInSaveModList != null)
+                //만약 둘다 존재할경우
+                int saveCurrentIndex = ModsFromSave.IndexOf(SaveCurrent);
+                int activeCurrentIndex = ModsFromActive.IndexOf(ActiveCurrent);
+                Mod SaveModInActiveModList = ModsFromActive.AfterIndex(activeCurrentIndex).Where(item => item.ModName == SaveCurrent.ModName).FirstOrDefault(); // SaveModsToAdd.AfterIndex(saveCurrentIndex).Any(item => item.ModName == ActiveCurrent.ModName))
+                Mod ActiveModInSaveModList = ModsFromSave.AfterIndex(saveCurrentIndex).Where(item => item.ModName == ActiveCurrent.ModName).FirstOrDefault();
+                if (SaveModInActiveModList != null && ActiveModInSaveModList != null)
                 {
-                    int SaveGapBetweenCurrentAndTarget = ModsFromActive.IndexOf(SaveModInActiveModList) - ActiveModsToAdd.IndexOf(ActiveCurrent);
-                    int ActiveGapBetweenCurrentAndTarget = SaveModsToAdd.IndexOf(ActiveModInSaveModList) - SaveModsToAdd.IndexOf(SaveCurrent);
-                }
+                    int SaveGapBetweenCurrentAndTarget = ModsFromActive.IndexOf(SaveModInActiveModList) - ModsFromActive.IndexOf(ActiveCurrent);
+                    int ActiveGapBetweenCurrentAndTarget = ModsFromSave.IndexOf(ActiveModInSaveModList) - ModsFromSave.IndexOf(SaveCurrent);
 
-                var placeHolder = new Mod();
-
-                //if(SaveCurrentIndexFromActiveMods != null && ActiveCurrentIndexFromSaveMods != null)
-                { // 네이밍을 어떻게 해야할까..
-                    int ModCountNeeded_ToMatchSave = ModsFromActive.IndexOf(SaveCurrent);
-                    int ModCountNeeded_ToMatchActive = ModsFromSave.IndexOf(ActiveCurrent);
-
-                    if(ModCountNeeded_ToMatchActive > ModCountNeeded_ToMatchSave)
-                    { // Save를 먼저 올린다
-                        modPairList.Add(new ModPair(SaveCurrent, placeHolder));
-                        ModsFromSave.RemoveAt(0);
-                        SaveCurrent = ModsFromSave.First();
+                    if (SaveGapBetweenCurrentAndTarget > ActiveGapBetweenCurrentAndTarget) // 만약 Save의 gap이 더 클 경우 Active을 먼저 더해주자
+                    {
+                        FormattedActiveMods.Add(ActiveCurrent);
+                        FormattedSaveMods.Add(new Mod());
+                        ActiveCurrent = ModsFromActive.Pop();
                     }
-                    else
-                    { // Active를 먼저 올린다
-                        modPairList.Add(new ModPair(placeHolder, ActiveCurrent));
-                        ModsFromActive.RemoveAt(0);
-                        ActiveCurrent = ModsFromActive.First();
+                    else // Active의 Gap이 더 클경우 Save를 먼저 더해주자.
+                    {
+                        FormattedSaveMods.Add(SaveCurrent);
+                        FormattedActiveMods.Add(new Mod());
+                        SaveCurrent = ModsFromSave.Pop();
                     }
                 }
-                //한쪽에만 존재할경우
-                  // saved에만 존재할경우
-                else if(SaveCurrentIndexFromActiveMods != null && ActiveCurrentIndexFromSaveMods == null)
+                //먼저 Active를 띄운다음 그다음 Save를 
+                //만약 Save에만 존재할경우
+                else if (SaveModInActiveModList == null)
                 {
-                    modPairList.Add(new ModPair(SaveCurrent, placeHolder));
-                    ModsFromSave.RemoveAt(0);
-                    SaveCurrent = ModsFromSave.First();
+                    FormattedSaveMods.Add(SaveCurrent);
+                    FormattedActiveMods.Add(new Mod());
+                    SaveCurrent = ModsFromSave.Pop();
                 }
-                  // active에만 존재할경우
-                else if(ActiveCurrentIndexFromSaveMods != null && SaveCurrentIndexFromActiveMods == null)
+                //만약 Active에만 존재할경우
+                else if (ActiveModInSaveModList == null)
                 {
-                    modPairList.Add(new ModPair(placeHolder, ActiveCurrent));
-                    ModsFromActive.RemoveAt(0);
-                    ActiveCurrent = ModsFromActive.First();
+                    FormattedActiveMods.Add(ActiveCurrent);
+                    FormattedSaveMods.Add(new Mod());
+                    ActiveCurrent = ModsFromActive.Pop();
                 }
                 else
-                { // 서로 1개씩만 남았거나, 기타 예외사항
-                    modPairList.Add(new ModPair(SaveCurrent, new Mod()));
-                    ModsFromSave.RemoveAt(0);
-                    if(ModsFromSave.Count > 0)
-                        SaveCurrent = ModsFromSave.First();
+                {
+                    throw new Exception("Error in main Logic");
                 }
+            }
+            
+            while(ModsFromSave.Count > 0)
+            {
+                FormattedSaveMods.Add(ModsFromSave.Pop());
+                FormattedActiveMods.Add(new Mod());
             }
 
-            if(ModsFromActive.Count > 0 && ModsFromSave.Count == 0)
+            while(ModsFromActive.Count > 0)
             {
-                foreach(var ActiveMod in ModsFromActive)
-                {
-                    modPairList.Add(new ModPair(new Mod(), ActiveMod));
-                }
+                FormattedActiveMods.Add(ModsFromActive.Pop());
+                FormattedSaveMods.Add(new Mod());
             }
-            else if(ModsFromSave.Count > 0 && ModsFromActive.Count == 0)
+
+            if(FormattedSaveMods.Count != FormattedActiveMods.Count)
+                throw new Exception("Exception in Main Logic 2");
+            
+            for(int i = 0; i < FormattedSaveMods.Count; i++)
             {
-                foreach(var SaveMod in ModsFromSave)
-                {
-                    modPairList.Add(new ModPair(SaveMod, new Mod()));
-                }
+                modPairList.Add(new ModPair(FormattedSaveMods[i], FormattedActiveMods[i]));
             }
-            else
-                throw new Exception("Main Logic is ended but both list's count is higher than 0");
 
             return modPairList;
         }
@@ -120,7 +135,7 @@ namespace Madeline.ModMismatchFormatter
 
         private List<Mod> EnsureModIsValidOrderAndOmitPlaceHolder(List<Mod> mods)
         {
-            return mods.Where(mod => (!mod.isPlaceHolder)).OrderBy(mod => mod.Order).ToList();
+            return mods.Where(mod => !(mod.isPlaceHolder)).OrderBy(mod => mod.Order).ToList();
         }
     }
 }

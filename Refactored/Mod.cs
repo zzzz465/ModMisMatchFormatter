@@ -7,13 +7,19 @@ namespace Madeline.ModMismatchFormatter
     {
         private Mod saveCurrent;
 
-        public bool isPlaceHolder { get; private set; }
+        public bool isPlaceHolder
+        {
+            get { return (Identifier == null); }
+        }
         public int? Order { get; set; }
-        public string Identifier { get; set; } = "PlaceHolder";
+        public string Identifier { get; set; }
+        public string ModName { get; set; }
         public string Version { get; set; }
-        public Mod(int? order = null) // Identifier 넣어주기
+        public Mod(string Identifier = null, string ModName = null, int? order = null) // Identifier 넣어주기
         {
             this.Order = order;
+            this.Identifier = Identifier;
+            this.ModName = ModName;
         }
 
         public bool isVersionDifferent(Mod other)
