@@ -5,7 +5,7 @@ using System.Text;
 using Harmony;
 using Verse;
 using System.Reflection;
-using System.Reflection.Emit;
+using Madeline.ModMismatchFormatter;
 
 namespace ModMisMatchWindowPatch
 {
@@ -24,7 +24,12 @@ namespace ModMisMatchWindowPatch
         {
             if (!ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _))
             {
-                Find.WindowStack.Add(new ModMisMatchWindow(confirmedAction));
+                //Find.WindowStack.Add(new ModMisMatchWindow(confirmedAction));
+                var renderer = new ModListerElementRenderer();
+                var formatter = new ModPresenter();
+                Find.WindowStack.Add(new Madeline.ModMismatchFormatter.ModMismatchWindow(renderer,
+                                                                                         formatter,
+                                                                                         confirmedAction));
                 __result = true;
                 return false;
             }
