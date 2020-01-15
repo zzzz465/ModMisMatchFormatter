@@ -58,9 +58,13 @@
     <Compile Include="ModMisMatchWindow.cs" />
     <Compile Include="MyWidgets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Refactored\ColorPresets.cs" />
+    <Compile Include="Refactored\iModListerElementRenderer.cs" />
     <Compile Include="Refactored\iOrderFormatter.cs" />
     <Compile Include="Refactored\ListExtension.cs" />
     <Compile Include="Refactored\Mod.cs" />
+    <Compile Include="Refactored\ModListerElementRenderer.cs" />
+    <Compile Include="Refactored\ModMismatchWindow.cs" />
     <Compile Include="Refactored\ModPair.cs" />
     <Compile Include="Refactored\ModPresenter.cs" />
     <Compile Include="Refactored\TestCase.cs" />

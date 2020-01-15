@@ -5,8 +5,8 @@ namespace Madeline.ModMismatchFormatter
 {
     public class ModPair
     {
-        public Mod Save { get; set; }
-        public Mod Loaded { get; set; }
+        public Mod Save { get; protected set; }
+        public Mod Loaded { get; protected set; }
 
         public ModPair(Mod save, Mod loaded)
         {
