@@ -21,26 +21,6 @@ namespace Madeline.ModMismatchFormatter
 
             List<ModPair> modPairList = new List<ModPair>();
 
-            /*
-            LoadedModManager.RunningMods.ToList().ForEach(item => ActiveModsToAdd.Add(new ModElement(item.Name, item.loadOrder, true, false)));
-            if (ScribeMetaHeaderUtility.loadedModNamesList != null)
-            {
-                int k = 0;
-                ScribeMetaHeaderUtility.loadedModNamesList.ForEach(item =>
-                {
-                    SaveModsToAdd.Add(new ModElement(item, k, false, false));
-                    k++;
-                });
-            }
-            */
-            //ActiveMods.AddRange(ActiveModsToAdd);
-            //SaveMods.AddRange(SaveModsToAdd);
-            //Pop은 뒤에서 부터 가져옴. FIFO 방식 (FILO 아님)
-            /*
-            ActiveModsToAdd.Reverse();
-            SaveModsToAdd.Reverse();
-            */
-
             ModsFromSave.Reverse();
             ModsFromActive.Reverse();
             Mod SaveCurrent = ModsFromSave.Pop();

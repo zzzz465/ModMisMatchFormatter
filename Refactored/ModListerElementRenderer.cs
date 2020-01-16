@@ -1,18 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if RELEASE
 using Verse;
-#endif
 using System.Linq;
 
 namespace Madeline.ModMismatchFormatter
 {
     public class ModListerElementRenderer : iModListerElementRenderer
     {
-        public GUIStyle ModStateStyle { get; set; } = new GUIStyle() { fontSize = 12 };
-        public GUIStyle ModDescriptionStyle { get; set; } = new GUIStyle() { fontSize = 12, alignment = TextAnchor.MiddleLeft };
-        public GUIStyle ModVersionStyle { get; set; } = new GUIStyle() { fontSize = 8, alignment = TextAnchor.MiddleLeft };
+        public GUIStyle ModStateStyle { get; set; }
+        public GUIStyle ModDescriptionStyle { get; set; }
+        public GUIStyle ModVersionStyle { get; set; }
         public float LeftListCenterPos { get; protected set; }
         public float RightListCenterPos { get; protected set; }
         enum ModState
@@ -22,32 +20,47 @@ namespace Madeline.ModMismatchFormatter
             VersionChange,
             None
         }
-        /*
-        void RenderElementList(Rect root, IEnumerable<ModPair> pairs)
+        public ModListerElementRenderer()
         {
-            Rect SingleItemRect = new Rect(root.x, root.y, root.width, 22f);
-            Rect SaveModsViewRect = new Rect(root.x, root.y, root.width, SingleItemRect.height * pairs.Count());
-            Rect ActiveModsViewRect = new Rect(SaveModsViewRect);
-            float scrollBarWidth = verticalScrollBarStyle.fixedWidth;
-            Rect ScrollRect = new Rect(root.x + ((root.width - scrollBarWidth) / 2), root.y, scrollBarWidth, SingleItemRect.height);
-            
-            scrollPosition = GUI.BeginScrollView(root, scrollPosition, ViewRect);
-            foreach(var pair in pairs)
-            {
-                RenderSinglePair(SingleItemRect, ScrollRect, pair);
-                SingleItemRect.y = SingleItemRect.y + SingleItemRect.height;
-                ScrollRect.y = SingleItemRect.y;
-            }
-            GUI.EndScrollView();
-            
+            InitializeDefaultFont();
         }
-        */
+
+        void InitializeDefaultFont()
+        {
+            ModDescriptionStyle = new GUIStyle();
+            ModDescriptionStyle.fontSize = 15;
+            ModDescriptionStyle.alignment = TextAnchor.MiddleLeft;
+            ModDescriptionStyle.normal.textColor = Color.white;
+            ModDescriptionStyle.onNormal.textColor = Color.white;
+            ModDescriptionStyle.hover.textColor = Color.white;
+            ModDescriptionStyle.onHover.textColor = Color.white;
+
+            ModStateStyle = new GUIStyle();
+            ModStateStyle.fontSize = ModDescriptionStyle.fontSize;
+            ModStateStyle.alignment = TextAnchor.MiddleLeft;
+            ModStateStyle.normal.textColor = Color.white;
+            ModStateStyle.onNormal.textColor = Color.white;
+            ModStateStyle.hover.textColor = Color.white;
+            ModStateStyle.onHover.textColor = Color.white;
+
+
+            ModVersionStyle = new GUIStyle();
+            ModVersionStyle.fontSize = 11;
+            ModVersionStyle.alignment = TextAnchor.MiddleLeft;
+            ModVersionStyle.normal.textColor = Color.white;
+            ModVersionStyle.onNormal.textColor = Color.white;
+            ModVersionStyle.hover.textColor = Color.white;
+            ModVersionStyle.onHover.textColor = Color.white;
+
+        }
 
         public void RenderSaveMod(Rect left, ModPair pair)
         {
             var saveMod = pair.Save;
             if(saveMod.isPlaceHolder)
                 RenderPlaceHolderMod(left);
+            else if(pair.Loaded.isPlaceHolder)
+                RenderSingleMod(left, saveMod, ModState.Remove);
             else
                 RenderSingleMod(left, saveMod, ModState.None);
         }
@@ -58,15 +71,15 @@ namespace Madeline.ModMismatchFormatter
                 RenderPlaceHolderMod(right);
             else if(pair.Loaded.isVersionDifferent(pair.Save))
                 RenderSingleMod(right, pair.Loaded, ModState.VersionChange);
+            else if(pair.Save.isPlaceHolder)
+                RenderSingleMod(right, pair.Loaded, ModState.Add);
             else
                 RenderSingleMod(right, pair.Loaded, ModState.None);
         }
 
         void RenderPlaceHolderMod(Rect root)
         { // Complete
-            #if RELEASE
-            Widgets.DrawBoxSolid(root, Background);
-            #endif
+            Widgets.DrawBoxSolid(root, ColorPresets.Background);
         }
 
         void RenderSingleMod(Rect root, Mod mod, ModState modState)
@@ -79,9 +92,7 @@ namespace Madeline.ModMismatchFormatter
             else
                 bgColor = ColorPresets.Background;
 
-            #if RELEASE
-            Widgets.DrawBoxSolid(root, bgColor); // 이것때문에 테스트가 불가능해진다고?
-            #endif
+            Widgets.DrawBoxSolid(root, bgColor);
 
             float leftBoxWidth = 16f;
             Rect ModStateRect = new Rect(root.x, root.y, leftBoxWidth, root.height);
@@ -93,17 +104,20 @@ namespace Madeline.ModMismatchFormatter
         void RenderModDescriptionAndVersion(Rect Root, Mod mod)
         {
             string version = mod.Version ?? "Unknown";
+            version = $"ver : {version}";
             string description = $"{mod.ModName}";
+
+            var DescriptionTextHeight = ModDescriptionStyle.CalcSize(new GUIContent(description)).y;
+            var VersionTextHeight = ModVersionStyle.CalcSize(new GUIContent(version)).y;
+
+            if(DescriptionTextHeight + VersionTextHeight > Root.height)
+                throw new Exception($"Root rect's height is smaller than minimum size {DescriptionTextHeight + VersionTextHeight}");
             
-            var size = ModVersionStyle.CalcSize(new GUIContent(version));
-            if(Root.height - size.y <= 0)
-                throw new Exception("Root rect is smaller than version text.");
-            
-            Rect DescriptionRect = new Rect(Root.x, Root.y, Root.width, Root.height - size.y);
+            Rect DescriptionRect = new Rect(Root.x, Root.y, Root.width, DescriptionTextHeight);
             GUI.Label(DescriptionRect, description, ModDescriptionStyle);
 
-            Rect VersionRect = new Rect(Root.x, DescriptionRect.yMax, Root.width, size.y);
-            GUI.Label(VersionRect, version, ModVersionStyle);   
+            Rect VersionRect = new Rect(Root.x, Root.yMax - VersionTextHeight, Root.width, VersionTextHeight);
+            GUI.Label(VersionRect, version, ModVersionStyle);
         }
 
         void RenderModState(Rect root, ModState state)

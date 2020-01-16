@@ -29,6 +29,16 @@ namespace Madeline.ModMismatchFormatter
         {
             base.PreOpen();
             InitializePair();
+            SetDrawerFonts();
+        }
+
+        void SetDrawerFonts()
+        {
+            //renderer.ModDescriptionStyle = Text.CurFontStyle;
+            //renderer.ModStateStyle = Text.CurFontStyle;
+            ////renderer.ModVersionStyle = new GUIStyle(Text.CurFontStyle) { fontSize = Text.CurFontStyle.fontSize - 3 };
+
+            Log.Message(string.Format("DescriptionStyle Font size : {0}", renderer.ModDescriptionStyle.fontSize));
         }
 
         void InitializePair()
@@ -70,15 +80,13 @@ namespace Madeline.ModMismatchFormatter
         public override void DoWindowContents(Rect canvas)
         {
             int ItemCount = pairs.Count;
-            GUIStyle TitleStyle = new GUIStyle() { fontSize = 12, alignment = TextAnchor.MiddleCenter};
-
             //윗쪽 타이틀 설정
-			Rect TextBox = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
-            Widgets.Label(TextBox, "ModsMismatchWarningTitle".Translate());
+			Rect TitleRect = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
+            Widgets.Label(TitleRect, "ModsMismatchWarningTitle".Translate());
 
             //1개 모드 사이즈
             float RectWidth = canvas.width / 2 - 40;
-            Vector2 SingleItemSize = new Vector2(RectWidth, 22);
+            Vector2 SingleItemSize = new Vector2(RectWidth, 34);
             Rect SingleModItemRect = new Rect(Vector2.zero, SingleItemSize);
 
             //막대기 사이즈
@@ -89,50 +97,67 @@ namespace Madeline.ModMismatchFormatter
 
             //좌측(Save)
             GUI.contentColor = Color.white;
-			Rect LeftSaveRect = new Rect((canvas.width / 2) - RectWidth, TextBox.yMax, RectWidth, canvas.height - TextBox.height - 60); // 이걸 가지고 다른 모든 상자들의 길이를 측정함
-			Rect LeftinSaveRect = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin, LeftSaveRect.width - 18f, SingleModItemRect.height * ItemCount);
+			Rect LeftSaveRect = new Rect((canvas.width / 2) - RectWidth, TitleRect.yMax, RectWidth, canvas.height - TitleRect.height - 60); // 이걸 가지고 다른 모든 상자들의 길이를 측정함
+			Rect LeftinSaveRect = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin, LeftSaveRect.width - 18f, SingleModItemRect.height * ItemCount + Bar.height * (ItemCount - 1));
             Widgets.DrawBoxSolid(LeftSaveRect, ColorPresets.Background);
 
             Rect LeftTitle = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin - 26f, RectWidth - 18f, 26f); // 18f는 스크롤바 크기
-            GUI.Label(LeftTitle, "SaveModListTitle".Translate(), TitleStyle);
+            Widgets.Label(LeftTitle, "SaveModListTitle".Translate());
 
             //우측(Active)
             Rect RightActiveRect = new Rect(LeftSaveRect.xMax + 16f, LeftSaveRect.yMin, LeftSaveRect.width, LeftSaveRect.height); // LeftSaveRect에 종속
-            Rect RightinActiveRect = new Rect(RightActiveRect.xMin, RightActiveRect.yMin, RightActiveRect.width, ItemCount * SingleModItemRect.height); // RightActiveRect에 종속
+            Rect RightinActiveRect = new Rect(RightActiveRect.xMin, RightActiveRect.yMin, RightActiveRect.width, LeftinSaveRect.height); // RightActiveRect에 종속
             Widgets.DrawBoxSolid(RightActiveRect, ColorPresets.Background);
 
             Rect RightTitle = new Rect(RightActiveRect.xMin, RightActiveRect.yMin - 26f, RectWidth - 18f, 26f);
-            GUI.Label(RightTitle, "ActiveModListTitle".Translate(), TitleStyle);
+            Widgets.Label(RightTitle, "ActiveModListTitle".Translate());
             //개수 안맞으면 PlaceHolder 넣어줘야함
 
+            
             Widgets.BeginScrollView(LeftSaveRect, ref scrollPosition, LeftinSaveRect, true);
             SingleModItemRect.position = new Vector2(LeftinSaveRect.x, LeftinSaveRect.y); // 위치 초기화
+            Bar.position = new Vector2(SingleModItemRect.x, SingleModItemRect.yMax + 1f);
+            Bar.width = SingleModItemRect.xMax - SingleModItemRect.xMin;
             foreach(var pair in pairs)
             {
                 renderer.RenderSaveMod(SingleModItemRect, pair);
+                Bar.y = SingleModItemRect.yMax;
+                RenderSeperationLine(Bar);
+                SingleModItemRect.y = Bar.yMax;
+
             }
             Widgets.EndScrollView();
 
             Widgets.BeginScrollView(RightActiveRect, ref scrollPosition, RightinActiveRect, false);
             SingleModItemRect.position = new Vector2(RightinActiveRect.xMin, RightinActiveRect.yMin); // 위치 초기화
             Bar.position = new Vector2(SingleModItemRect.x, SingleModItemRect.yMax + 1f);
+            Bar.width = SingleModItemRect.xMax - SingleModItemRect.xMin;
             foreach(var pair in pairs)
             {
                 renderer.RenderActiveMod(SingleModItemRect, pair);
+                Bar.y = SingleModItemRect.yMax;
+                RenderSeperationLine(Bar);
+                SingleModItemRect.y = Bar.yMax;
             }
             Widgets.EndScrollView();
+            
 
             float ButtonXPos = LeftSaveRect.xMin + ( (LeftSaveRect.width - ButtonSize.x) / 2 ) - 7f; // micro control. I'm lack of math skill.
 			float ButtonYPos = canvas.yMax - 10f - ButtonSize.y;
             Rect LoadFromSaveButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
-            DrawLoadFromSaveButton(LoadFromSaveButton);
+            RenderLoadFromSaveButton(LoadFromSaveButton);
 
             ButtonXPos = RightActiveRect.xMin + ( (RightActiveRect.width - ButtonSize.x) / 2 ) - 7f;
 			Rect LoadAnywayButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
-            DrawLoadAnywayButton(LoadAnywayButton);
+            RenderLoadAnywayButton(LoadAnywayButton);
         }
 
-        void DrawLoadAnywayButton(Rect LoadAnywayRect)
+        void RenderSeperationLine(Rect rect)
+        {
+            Widgets.DrawBoxSolid(rect, Color.grey);
+        }
+
+        void RenderLoadAnywayButton(Rect LoadAnywayRect)
         {
             if (Widgets.ButtonText(LoadAnywayRect, "LoadAnyway".Translate()))
             {
@@ -140,7 +165,7 @@ namespace Madeline.ModMismatchFormatter
             }
         }
 
-        void DrawLoadFromSaveButton(Rect LoadFromSaveRect)
+        void RenderLoadFromSaveButton(Rect LoadFromSaveRect)
         {
             if (Widgets.ButtonText(LoadFromSaveRect, "ChangeLoadedMods".Translate()))
             {

@@ -5,7 +5,6 @@ namespace Madeline.ModMismatchFormatter
 {
     public class Mod
     {
-        private Mod saveCurrent;
 
         public bool isPlaceHolder
         {
