@@ -20,6 +20,12 @@ namespace Madeline.ModMismatchFormatter
             VersionChange,
             None
         }
+        enum VersionState
+        {
+            Upversion,
+            DownVersion,
+            None
+        }
         public ModListerElementRenderer()
         {
             InitializeDefaultFont();
@@ -69,10 +75,10 @@ namespace Madeline.ModMismatchFormatter
         {
             if(pair.Loaded.isPlaceHolder)
                 RenderPlaceHolderMod(right);
-            else if(pair.Loaded.isVersionDifferent(pair.Save))
-                RenderSingleMod(right, pair.Loaded, ModState.VersionChange);
             else if(pair.Save.isPlaceHolder)
                 RenderSingleMod(right, pair.Loaded, ModState.Add);
+            else if(pair.Loaded.isVersionDifferent(pair.Save))
+                RenderSingleMod(right, pair.Loaded, ModState.VersionChange);
             else
                 RenderSingleMod(right, pair.Loaded, ModState.None);
         }
@@ -89,6 +95,8 @@ namespace Madeline.ModMismatchFormatter
                 bgColor = ColorPresets.Green;
             else if(modState == ModState.Remove)
                 bgColor = ColorPresets.Red;
+            else if(modState == ModState.VersionChange)
+                bgColor = ColorPresets.Yellow;
             else
                 bgColor = ColorPresets.Background;
 
@@ -117,7 +125,23 @@ namespace Madeline.ModMismatchFormatter
             GUI.Label(DescriptionRect, description, ModDescriptionStyle);
 
             Rect VersionRect = new Rect(Root.x, Root.yMax - VersionTextHeight, Root.width, VersionTextHeight);
-            GUI.Label(VersionRect, version, ModVersionStyle);
+            //TODO - mod을 보고 versionStyle를 넣어주자
+            RenderVersionText(VersionRect, version, ModVersionStyle, VersionState.None);
+        }
+
+        void RenderVersionText(Rect versionRect, string content, GUIStyle style, VersionState state)
+        {
+            //TODO - VersionState에 맞는 색깔 넣어주기
+            GUI.Label(versionRect, content, style);
+        }
+
+        void SetColor(GUIStyle style, Color color)
+        { // FIXME - 색깔이 고정되어있음
+            style.alignment = TextAnchor.MiddleLeft;
+            style.normal.textColor = Color.white;
+            style.onNormal.textColor = Color.white;
+            style.hover.textColor = Color.white;
+            style.onHover.textColor = Color.white;
         }
 
         void RenderModState(Rect root, ModState state)

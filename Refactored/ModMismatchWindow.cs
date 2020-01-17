@@ -23,6 +23,7 @@ namespace Madeline.ModMismatchFormatter
             this.renderer = renderer;
             this.formatter = formatter;
             this.confirmAction = confirmAction;
+            this.doCloseX = true;
         }
 
         public override void PreOpen()
@@ -43,43 +44,16 @@ namespace Madeline.ModMismatchFormatter
 
         void InitializePair()
         {
-            List<Mod> activeMods = GetModsFromActive();
-            List<Mod> saveMods = GetModsFromSave();
+            List<Mod> activeMods = ModContentPackExtension.GetModsFromActive();
+            List<Mod> saveMods = ModContentPackExtension.GetModsFromSave();
+            Log.Message($"activeMods count : {activeMods.Count} | saveMods count : {saveMods.Count}");
             var result = formatter.GetFormattedModPairs(saveMods, activeMods);
             pairs = result.ToList();
         }
 
-        List<Mod> GetModsFromActive()
-        {
-            List<Mod> activeMods = new List<Mod>();
-            foreach(var mod in LoadedModManager.RunningMods)
-            {
-                activeMods.Add(new Mod(mod.Identifier, mod.Name, mod.loadOrder));
-            }
-            return activeMods;
-        }
-
-        List<Mod> GetModsFromSave()
-        {
-            List<Mod> saveMods = new List<Mod>();
-            if (ScribeMetaHeaderUtility.loadedModNamesList != null && ScribeMetaHeaderUtility.loadedModIdsList != null)
-            { // save
-                var modnameList = ScribeMetaHeaderUtility.loadedModNamesList.Count;
-                var modIdList = ScribeMetaHeaderUtility.loadedModIdsList.Count;
-                if(modnameList != modIdList)
-                    throw new Exception("Mod Name length and ModID length in savefile is not matched");
-
-                for(int i = 0; i < modnameList; i++)
-                {
-                    saveMods.Add(new Mod(ScribeMetaHeaderUtility.loadedModIdsList[i], ScribeMetaHeaderUtility.loadedModNamesList[i], i));
-                }
-            }
-            return saveMods;
-        }
-
         public override void DoWindowContents(Rect canvas)
         {
-            int ItemCount = pairs.Count;
+            int ItemCount = pairs.Count + 1;
             //윗쪽 타이틀 설정
 			Rect TitleRect = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
             Widgets.Label(TitleRect, "ModsMismatchWarningTitle".Translate());

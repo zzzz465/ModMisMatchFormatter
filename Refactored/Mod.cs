@@ -5,7 +5,6 @@ namespace Madeline.ModMismatchFormatter
 {
     public class Mod
     {
-
         public bool isPlaceHolder
         {
             get { return (Identifier == null); }
@@ -23,13 +22,18 @@ namespace Madeline.ModMismatchFormatter
 
         public bool isVersionDifferent(Mod other)
         {
-            if(other.Identifier != Identifier)
+            if(other.ModName != ModName)
                 throw new Exception($"Trying to compare version between different mod : {this.Identifier} | {other.Identifier}");
 
             if(other.Version != Version)
                 return true;
             else
                 return false;
+        }
+
+        public override string ToString()
+        {
+            return $"Mod {this.ModName} ver {this.Version} | {this.Identifier}";
         }
     }
 }

@@ -16,8 +16,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\RimWorld\Mods\TestMod\Assemblies\</OutputPath>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\RimWorld\Mods\BetterMismatchWindow\Assemblies\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -60,15 +60,13 @@
     <Compile Include="Refactored\iModListerElementRenderer.cs" />
     <Compile Include="Refactored\iOrderFormatter.cs" />
     <Compile Include="Refactored\ListExtension.cs" />
+    <Compile Include="Refactored\MetaHeaderUtility.cs" />
     <Compile Include="Refactored\Mod.cs" />
+    <Compile Include="Refactored\ModContentPackExtension.cs" />
     <Compile Include="Refactored\ModListerElementRenderer.cs" />
     <Compile Include="Refactored\ModMismatchWindow.cs" />
     <Compile Include="Refactored\ModPair.cs" />
     <Compile Include="Refactored\ModPresenter.cs" />
-    <Compile Include="Refactored\TestCase.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

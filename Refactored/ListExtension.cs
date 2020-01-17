@@ -17,5 +17,13 @@ namespace Madeline.ModMismatchFormatter
             list.RemoveAt(list.Count - 1);
             return elem;
         }
+
+        public static T PopOrNull<T>(this List<T> list) where T : class
+        {
+            if (list.Count == 0)
+                return null;
+            else
+                return list.Pop();
+        }
     }
 }
