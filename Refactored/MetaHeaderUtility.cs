@@ -43,23 +43,31 @@ namespace Madeline.ModMismatchFormatter
             CurrnetUsingFilePath = null;
         }
 
-        public static string GetVersion(int index)
+        public static string GetVersion(string modName)
         {
-            string version;
+            string version = "Unknown";
             if(xdoc == null)
                 throw new Exception("invoke BeginReading before using this method");
             try
             {
-                version = xdoc.Root.Element("meta")?.Element(MOD_META_DATAS)?.Elements().ElementAt(index)?.Element(VERSION_NODENAME)?.Value ?? "Unknown";
+                //version = xdoc.Root.Element("meta")?.Element(MOD_META_DATAS)?.Elements().ElementAt(index)?.Element(VERSION_NODENAME)?.Value ?? "Unknown";
+                var ModMetaHeaders = xdoc.Root.Element("meta")?.Element(MOD_META_DATAS);
+                if(ModMetaHeaders != null)
+                {
+                    version = (from node in ModMetaHeaders.Elements()
+                               let modNameInNode = node.Element("ModName")?.Value
+                               where string.Equals(modNameInNode, modName)
+                               select node.Element(VERSION_NODENAME)?.Value).FirstOrDefault() ?? "Unknown";
+                }
             }
-            catch
+            catch(Exception ex)
             {
-                version = "Unknown";
+                Log.Warning(ex.ToString());
             }
             return version;
         }
 
-        public static void SetVersions(List<Pair<string, string>> datas)
+        public static void SetVersions(List<ModMetaHeader> metaHeaders)
         {
             if(xdoc == null)
                 throw new Exception("Invoke BeginReading before using this method");
@@ -69,14 +77,14 @@ namespace Madeline.ModMismatchFormatter
             modVersionsNode.RemoveAll();
             if(meta.Element(MOD_META_DATAS) == null)
                 throw new Exception("F");
-            for(int i = 0; i < datas.Count; i++)
+            for(int i = 0; i < metaHeaders.Count; i++)
             {
-                var data = datas[i];
+                var data = metaHeaders[i];
                 var liNode = new XElement("li");
-                liNode.Add(new XElement("ModName") { Value = data.First });
-                liNode.Add(new XElement(VERSION_NODENAME) { Value = data.Second });
+                liNode.Add(new XElement("ModName") { Value = data.ModName });
+                liNode.Add(new XElement(VERSION_NODENAME) { Value = data.Version });
                 modVersionsNode.Add(liNode);
-                Log.Message($"set mod {data.First} 's version to {data.Second}");
+                Log.Message($"set mod {data.ModName} 's version to {data.Version}");
             }
         }
 
@@ -114,14 +122,14 @@ namespace Madeline.ModMismatchFormatter
         {
             string filePath = GenFilePaths.FilePathForSavedGame(fileName);
             MetaHeaderUtility.BeginReading(filePath);
-            List<Pair<string,string>> ModMetaDatas = new List<Pair<string, string>>();
+            List<ModMetaHeader> metaHeaders = new List<ModMetaHeader>();
             foreach(var modContentPack in LoadedModManager.RunningMods)
             {
                 var metadata = modContentPack.GetMetaData();
                 var version = MetaHeaderUtility.GetVersionFromManifestFile(modContentPack);
-                ModMetaDatas.Add(new Pair<string, string>(metadata.Name, version));
+                metaHeaders.Add(new ModMetaHeader() { ModName = metadata.Name, Version = version });
             }
-            MetaHeaderUtility.SetVersions(ModMetaDatas);
+            MetaHeaderUtility.SetVersions(metaHeaders);
             MetaHeaderUtility.EndReading();
         }
 
@@ -153,5 +161,11 @@ namespace Madeline.ModMismatchFormatter
         {
 
         }
+    }
+
+    public struct ModMetaHeader
+    {
+        public string ModName;
+        public string Version;
     }
 }

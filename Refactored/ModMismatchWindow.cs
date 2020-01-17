@@ -38,15 +38,12 @@ namespace Madeline.ModMismatchFormatter
             //renderer.ModDescriptionStyle = Text.CurFontStyle;
             //renderer.ModStateStyle = Text.CurFontStyle;
             ////renderer.ModVersionStyle = new GUIStyle(Text.CurFontStyle) { fontSize = Text.CurFontStyle.fontSize - 3 };
-
-            Log.Message(string.Format("DescriptionStyle Font size : {0}", renderer.ModDescriptionStyle.fontSize));
         }
 
         void InitializePair()
         {
             List<Mod> activeMods = ModContentPackExtension.GetModsFromActive();
             List<Mod> saveMods = ModContentPackExtension.GetModsFromSave();
-            Log.Message($"activeMods count : {activeMods.Count} | saveMods count : {saveMods.Count}");
             var result = formatter.GetFormattedModPairs(saveMods, activeMods);
             pairs = result.ToList();
         }

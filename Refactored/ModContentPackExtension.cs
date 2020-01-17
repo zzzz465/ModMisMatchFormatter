@@ -51,7 +51,8 @@ namespace Madeline.ModMismatchFormatter
                 for(int i = 0; i < modnameList; i++)
                 {
                     var mod = new Mod(ScribeMetaHeaderUtility.loadedModIdsList[i], ScribeMetaHeaderUtility.loadedModNamesList[i], i);
-                    mod.Version = MetaHeaderUtility.GetVersion(i);
+                    string modName = mod.ModName;
+                    mod.Version = MetaHeaderUtility.GetVersion(modName);
                     saveMods.Add(mod);
                 }
                 MetaHeaderUtility.EndReading();

@@ -4,24 +4,24 @@ using System.Linq;
 
 namespace Madeline.ModMismatchFormatter
 {
-    public class UITester : MonoBehaviour
+    public class UITester// : MonoBehaviour
     {
         iOrderFormatter formatter;
-        iCompareRectRenderer renderer;
+        //iCompareRectRenderer renderer;
         bool initialized = false;
         List<ModPair> result;
         private void Awake() 
         {
-            renderer = new CompareRectRenderer();
-            formatter = new ModPresenter();
-            Test();
+            //renderer = new CompareRectRenderer();
+            //formatter = new ModPresenter();
+            //Test();
         }
 
         private void OnGUI() 
         {
             if(initialized)
             {
-                renderer.Render(new Rect(0, 0, 1200, 800), result);
+                //renderer.Render(new Rect(0, 0, 1200, 800), result);
             }    
         }
 
