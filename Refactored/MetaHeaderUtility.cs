@@ -84,7 +84,6 @@ namespace Madeline.ModMismatchFormatter
                 liNode.Add(new XElement("ModName") { Value = data.ModName });
                 liNode.Add(new XElement(VERSION_NODENAME) { Value = data.Version });
                 modVersionsNode.Add(liNode);
-                Log.Message($"set mod {data.ModName} 's version to {data.Version}");
             }
         }
 
@@ -143,11 +142,12 @@ namespace Madeline.ModMismatchFormatter
                 {
                     XDocument Xdoc = XDocument.Load(MenifestFilePath);
                     var versionNode = Xdoc.Root.Element("version");
-                    version = versionNode.Value;
+                    version = versionNode.Value ?? "Unknown";
                 }
                 catch(Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    string error = $"exception in GetVersionFromManifestFile line\n{ex.ToString()}";
+                    Log.Error(error);
                 }
             }
             else
