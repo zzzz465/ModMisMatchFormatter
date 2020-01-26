@@ -64,9 +64,11 @@
     <Compile Include="Refactored\Mod.cs" />
     <Compile Include="Refactored\ModContentPackExtension.cs" />
     <Compile Include="Refactored\ModListerElementRenderer.cs" />
+    <Compile Include="Refactored\ModMismatchFormatter.cs" />
     <Compile Include="Refactored\ModMismatchWindow.cs" />
     <Compile Include="Refactored\ModPair.cs" />
     <Compile Include="Refactored\ModPresenter.cs" />
+    <Compile Include="Refactored\Settings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

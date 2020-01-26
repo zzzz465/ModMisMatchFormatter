@@ -33,26 +33,45 @@ namespace ModMisMatchWindowPatch
             HMInstance.Patch(CheckVersionAndLoadOriginal, new HarmonyMethod(CheckVersionAndLoadPrefix));
         }
 
+        [HarmonyPriority(9999)]
         static bool Prefix(ref bool __result, Action confirmedAction)
         {
-            string warningMessage = "Checking mismatch for mod and mod versions... please wait";
-            Messages.Message(warningMessage, MessageTypeDefOf.SilentInput, false);
+            bool isModListSame = ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _);
+            bool useVersionCompare = ModMismatchFormatter.useVersionCompare;
 
-            if (ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _) && MetaHeaderUtility.isVersionSame(ModContentPackExtension.GetModsFromSave(), ModContentPackExtension.GetModsFromActive()))
+            if(isModListSame)
             {
+                if(useVersionCompare)
+                {
+                    bool isVersionSame = MetaHeaderUtility.isVersionSame(ModContentPackExtension.GetModsFromSave(), ModContentPackExtension.GetModsFromActive());
+                    if(!isVersionSame)
+                    {
+                        string warningMessage = "Checking mismatch for mod and mod versions... please wait";
+                        Messages.Message(warningMessage, MessageTypeDefOf.SilentInput, false);
+                        CreateModMismatchWindow(confirmedAction);
+                        __result = true;
+                        return false;
+                    }
+                }
+
                 __result = false;
                 return true;
             }
             else
             {
+                CreateModMismatchWindow(confirmedAction);
+                __result = true;
+                return false;
+            }
+        }
+
+        static void CreateModMismatchWindow(Action confirmedAction)
+        {
                 var renderer = new ModListerElementRenderer();
                 var formatter = new OrderFormatterImpl();
                 Find.WindowStack.Add(new Madeline.ModMismatchFormatter.ModMismatchWindow(renderer,
                                                                                          formatter,
                                                                                          confirmedAction));
-                __result = true;
-                return false;
-            }
         }
     }
 }
