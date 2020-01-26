@@ -13,6 +13,7 @@ namespace Madeline.ModMismatchFormatter
         public GUIStyle ModVersionStyle { get; set; }
         public float LeftListCenterPos { get; protected set; }
         public float RightListCenterPos { get; protected set; }
+        public bool useVersionChecking { get; set; }
         enum ModState
         {
             Add,
@@ -77,25 +78,25 @@ namespace Madeline.ModMismatchFormatter
                 RenderPlaceHolderMod(right);
             else if(pair.Save.isPlaceHolder)
                 RenderSingleMod(right, pair.Loaded, ModState.Add);
-            else if(pair.Loaded.isVersionDifferent(pair.Save))
+            else if(useVersionChecking && pair.Loaded.isVersionDifferent(pair.Save))
                 RenderSingleMod(right, pair.Loaded, ModState.VersionChange);
             else
                 RenderSingleMod(right, pair.Loaded, ModState.None);
         }
 
         void RenderPlaceHolderMod(Rect root)
-        { // Complete
+        {
             Widgets.DrawBoxSolid(root, ColorPresets.Background);
         }
 
         void RenderSingleMod(Rect root, Mod mod, ModState modState)
-        { // 다 적었나?
+        {
             Color bgColor;
             if(modState == ModState.Add)
                 bgColor = ColorPresets.Green;
             else if(modState == ModState.Remove)
                 bgColor = ColorPresets.Red;
-            else if(modState == ModState.VersionChange)
+            else if(useVersionChecking && modState == ModState.VersionChange)
                 bgColor = ColorPresets.Yellow;
             else
                 bgColor = ColorPresets.Background;
@@ -118,15 +119,23 @@ namespace Madeline.ModMismatchFormatter
             var DescriptionTextHeight = ModDescriptionStyle.CalcSize(new GUIContent(description)).y;
             var VersionTextHeight = ModVersionStyle.CalcSize(new GUIContent(version)).y;
 
-            if(DescriptionTextHeight + VersionTextHeight > Root.height)
-                throw new Exception($"Root rect's height is smaller than minimum size {DescriptionTextHeight + VersionTextHeight}");
+            float minimumHeight;
+            if(useVersionChecking)
+                minimumHeight = DescriptionTextHeight + VersionTextHeight;
+            else
+                minimumHeight = DescriptionTextHeight;
+
+            if(minimumHeight > Root.height)
+                throw new Exception($"Root rect's height is smaller than minimum size {minimumHeight}");
             
             Rect DescriptionRect = new Rect(Root.x, Root.y, Root.width, DescriptionTextHeight);
             GUI.Label(DescriptionRect, description, ModDescriptionStyle);
-
-            Rect VersionRect = new Rect(Root.x, Root.yMax - VersionTextHeight, Root.width, VersionTextHeight);
-            //TODO - mod을 보고 versionStyle를 넣어주자
-            RenderVersionText(VersionRect, version, ModVersionStyle, VersionState.None);
+            
+            if(useVersionChecking)
+            {   //TODO - mod을 보고 versionStyle를 넣어주자
+                Rect VersionRect = new Rect(Root.x, Root.yMax - VersionTextHeight, Root.width, VersionTextHeight);
+                RenderVersionText(VersionRect, version, ModVersionStyle, VersionState.None);
+            }
         }
 
         void RenderVersionText(Rect versionRect, string content, GUIStyle style, VersionState state)

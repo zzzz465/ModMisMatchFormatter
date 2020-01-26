@@ -4,27 +4,40 @@ namespace Madeline.ModMismatchFormatter
 {
     public class ModMismatchFormatter : Verse.Mod
     {
-        static ModMismatchFormatter modMismatchFormatter;
+        static ModMismatchFormatter instance;
         Settings settings;
         internal static bool useVersionCompare
         {
-            get { return modMismatchFormatter.settings.useVersionCompare; }
+            get { return instance.settings.useVersionCompare; }
+        }
+        internal static bool writeMetaToSave
+        {
+            get { return instance.settings.saveVersionToSaveFile; }
         }
         public ModMismatchFormatter(ModContentPack pack) : base(pack)
         {
             this.settings = GetSettings<Settings>();
-            modMismatchFormatter = this;
+            instance = this;
         }
 
         public override void DoSettingsWindowContents(UnityEngine.Rect inRect)
         {   
 			Listing_Standard listingStandard = new Listing_Standard();
 			listingStandard.Begin(inRect);
-			string description = "Enable Version checking between saved file and current version. check steam workshop for the detailed description.";
-			bool result = this.settings.useVersionCompare;
-			listingStandard.CheckboxLabeled("EnableVersionChecking".Translate(), ref result, description);
-			this.settings.useVersionCompare = result;
+
+			bool useVersionCompare = this.settings.useVersionCompare;
+			string description = "useVersionCompareDescription".Translate(); //"Enable Version checking between saved file and current version. check steam workshop for the detailed description.";
+			listingStandard.CheckboxLabeled("EnableVersionChecking".Translate(), ref useVersionCompare, description);
+
+            bool writeMetaToSave = this.settings.saveVersionToSaveFile;
+            string writeMetaDescription = "writeMetaDescription".Translate();
+            listingStandard.CheckboxLabeled("EnableWritingCustomVersionHeader".Translate(), ref writeMetaToSave, writeMetaDescription);
+
+			this.settings.useVersionCompare = useVersionCompare;
+            this.settings.saveVersionToSaveFile = writeMetaToSave;
+
 			listingStandard.End();
+
 			base.DoSettingsWindowContents(inRect);
         }
 

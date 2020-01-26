@@ -21,12 +21,12 @@ namespace ModMisMatchWindowPatch
             Log.Message("Patching Madeline.ModMismatchWindow");
             HarmonyInstance HMInstance = HarmonyInstance.Create("Madeline");
             MethodInfo original = AccessTools.Method(typeof(ScribeMetaHeaderUtility), "TryCreateDialogsForVersionMismatchWarnings");
-            MethodInfo prefix = AccessTools.Method(typeof(HarmonyPatches), "Prefix");
+            MethodInfo prefix = AccessTools.Method(typeof(HarmonyPatches), "Prefix_TryCreateDialogForVersionMismatchWarnings");
             HMInstance.Patch(original, new HarmonyMethod(prefix));
 
             var SaveGameOriginal = AccessTools.Method(typeof(GameDataSaveLoader), "SaveGame");
-            var SaveGamePostfix = AccessTools.Method(typeof(MetaHeaderUtility), "UpdateModVersionMetaHeader");
-            HMInstance.Patch(SaveGameOriginal, null, new HarmonyMethod(SaveGamePostfix));
+            var SaveGamePrefix = AccessTools.Method(typeof(HarmonyPatches), "Prefix_SaveGame");
+            HMInstance.Patch(SaveGameOriginal, new HarmonyMethod(SaveGamePrefix));
 
             var CheckVersionAndLoadOriginal = AccessTools.Method(typeof(PreLoadUtility), "CheckVersionAndLoad");
             var CheckVersionAndLoadPrefix = AccessTools.Method(typeof(MetaHeaderUtility), "UpdateLastAccessedSaveFileInLoadSelection");
@@ -34,7 +34,7 @@ namespace ModMisMatchWindowPatch
         }
 
         [HarmonyPriority(9999)]
-        static bool Prefix(ref bool __result, Action confirmedAction)
+        static bool Prefix_TryCreateDialogForVersionMismatchWarnings(ref bool __result, Action confirmedAction)
         {
             bool isModListSame = ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _);
             bool useVersionCompare = ModMismatchFormatter.useVersionCompare;
@@ -48,7 +48,7 @@ namespace ModMisMatchWindowPatch
                     {
                         string warningMessage = "Checking mismatch for mod and mod versions... please wait";
                         Messages.Message(warningMessage, MessageTypeDefOf.SilentInput, false);
-                        CreateModMismatchWindow(confirmedAction);
+                        CreateModMismatchWindow(confirmedAction, useVersionCompare);
                         __result = true;
                         return false;
                     }
@@ -59,19 +59,39 @@ namespace ModMisMatchWindowPatch
             }
             else
             {
-                CreateModMismatchWindow(confirmedAction);
+                CreateModMismatchWindow(confirmedAction, useVersionCompare);
                 __result = true;
                 return false;
             }
         }
 
-        static void CreateModMismatchWindow(Action confirmedAction)
+        [HarmonyPriority(9999)]
+        static bool Prefix_SaveGame(string fileName)
+        {
+            bool WriteMeta = ModMismatchFormatter.writeMetaToSave;
+            if(WriteMeta)
+            {
+                try
+                {
+                    MetaHeaderUtility.UpdateModVersionMetaHeader(fileName);
+                }
+                catch(Exception ex)
+                {
+                    string report = $"exception was raised and cannot write mod meta headers to the save. mod versions are not saved. your save is fine though.\n==original exception==\n{ex.ToString()}";
+                    Log.Error(report);
+                }
+            }
+            return true;
+        }
+
+        static void CreateModMismatchWindow(Action confirmedAction, bool useVersionCompare)
         {
                 var renderer = new ModListerElementRenderer();
+                renderer.useVersionChecking = useVersionCompare;
                 var formatter = new OrderFormatterImpl();
                 Find.WindowStack.Add(new Madeline.ModMismatchFormatter.ModMismatchWindow(renderer,
                                                                                          formatter,
-                                                                                         confirmedAction));
+                                                                                         confirmedAction, useVersionCompare));
         }
     }
 }

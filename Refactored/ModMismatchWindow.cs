@@ -13,17 +13,19 @@ namespace Madeline.ModMismatchFormatter
         List<ModPair> pairs;
         Action confirmAction;
         Vector2 scrollPosition = Vector2.zero;
+        bool useVersionChecking;
         public override Vector2 InitialSize
         {
             get { return new Vector2(650, 700); }
         }
 
-        public ModMismatchWindow(iModListerElementRenderer renderer, iOrderFormatter formatter, Action confirmAction)
+        public ModMismatchWindow(iModListerElementRenderer renderer, iOrderFormatter formatter, Action confirmAction, bool useVersionChecking)
         { // 3항 연산자는..??
             this.renderer = renderer;
             this.formatter = formatter;
             this.confirmAction = confirmAction;
             this.doCloseX = true;
+            this.useVersionChecking = useVersionChecking;
         }
 
         public override void PreOpen()
@@ -42,8 +44,8 @@ namespace Madeline.ModMismatchFormatter
 
         void InitializePair()
         {
-            List<Mod> activeMods = ModContentPackExtension.GetModsFromActive();
-            List<Mod> saveMods = ModContentPackExtension.GetModsFromSave();
+            List<Mod> activeMods = ModContentPackExtension.GetModsFromActive(useVersionChecking);
+            List<Mod> saveMods = ModContentPackExtension.GetModsFromSave(useVersionChecking);
             var result = formatter.GetFormattedModPairs(saveMods, activeMods);
             pairs = result.ToList();
         }
@@ -58,6 +60,8 @@ namespace Madeline.ModMismatchFormatter
             //1개 모드 사이즈
             float RectWidth = canvas.width / 2 - 40;
             Vector2 SingleItemSize = new Vector2(RectWidth, 34);
+            if(!useVersionChecking)
+                SingleItemSize.y = 24f;
             Rect SingleModItemRect = new Rect(Vector2.zero, SingleItemSize);
 
             //막대기 사이즈
@@ -65,7 +69,8 @@ namespace Madeline.ModMismatchFormatter
 
 			//하위 버튼의 크기
 			Vector2 ButtonSize = new Vector2(RectWidth - 50f, 40f);
-
+            
+            //TODO - 클래스로 분류해내기
             //좌측(Save)
             GUI.contentColor = Color.white;
 			Rect LeftSaveRect = new Rect((canvas.width / 2) - RectWidth, TitleRect.yMax, RectWidth, canvas.height - TitleRect.height - 60); // 이걸 가지고 다른 모든 상자들의 길이를 측정함

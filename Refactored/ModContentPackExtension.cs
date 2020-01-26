@@ -26,37 +26,50 @@ namespace Madeline.ModMismatchFormatter
             pairs[pack] = result.First();
         }
 
-        public static List<Mod> GetModsFromActive()
+        public static List<Mod> GetModsFromActive(bool useVersionChecking = false)
         {
             List<Mod> activeMods = new List<Mod>();
             foreach(var RimworldMod in LoadedModManager.RunningMods)
             {
                 var mod = new Mod(RimworldMod.Identifier, RimworldMod.Name, RimworldMod.loadOrder);
-                mod.Version = MetaHeaderUtility.GetVersionFromManifestFile(RimworldMod);
+                if(useVersionChecking)
+                    mod.Version = MetaHeaderUtility.GetVersionFromManifestFile(RimworldMod);
                 activeMods.Add(mod);
             }
             return activeMods;
         }
-        public static List<Mod> GetModsFromSave()
+        public static List<Mod> GetModsFromSave(bool CheckModVersion = false)
         {
             List<Mod> saveMods = new List<Mod>();
             if (ScribeMetaHeaderUtility.loadedModNamesList != null && ScribeMetaHeaderUtility.loadedModIdsList != null)
-            { // save
-                var modnameList = ScribeMetaHeaderUtility.loadedModNamesList.Count;
-                var modIdList = ScribeMetaHeaderUtility.loadedModIdsList.Count;
-                if(modnameList != modIdList)
-                    throw new Exception("Mod Name length and ModID length in savefile is not matched");
-
-                MetaHeaderUtility.BeginReading(MetaHeaderUtility.LastAccessedSaveFilePathInLoadSelection);
-                for(int i = 0; i < modnameList; i++)
-                {
-                    var mod = new Mod(ScribeMetaHeaderUtility.loadedModIdsList[i], ScribeMetaHeaderUtility.loadedModNamesList[i], i);
-                    string modName = mod.ModName;
-                    mod.Version = MetaHeaderUtility.GetVersion(modName);
-                    saveMods.Add(mod);
-                }
-                MetaHeaderUtility.EndReading();
+            {
+                CheckSaveHeaderValid();
+                saveMods = ReadModsFromSaveHeader(CheckModVersion);
             }
+            return saveMods;
+        }
+
+        static void CheckSaveHeaderValid()
+        {
+            var modNamesCount = ScribeMetaHeaderUtility.loadedModNamesList.Count;
+            var modIdsCount = ScribeMetaHeaderUtility.loadedModIdsList.Count;
+            if(modNamesCount != modIdsCount)
+                throw new Exception("Mod Name length and ModID length in savefile is not matched");
+        }
+
+        static List<Mod> ReadModsFromSaveHeader(bool readModVersion)
+        {
+            List<Mod> saveMods = new List<Mod>();
+            MetaHeaderUtility.BeginReading(MetaHeaderUtility.LastAccessedSaveFilePathInLoadSelection);
+            for(int i = 0; i < ScribeMetaHeaderUtility.loadedModNamesList.Count; i++)
+            {
+                var mod = new Mod(ScribeMetaHeaderUtility.loadedModIdsList[i], ScribeMetaHeaderUtility.loadedModNamesList[i], i);
+                string modName = mod.ModName;
+                if(readModVersion)
+                    mod.Version = MetaHeaderUtility.GetVersion(modName);
+                saveMods.Add(mod);
+            }
+            MetaHeaderUtility.EndReading();
             return saveMods;
         }
     }

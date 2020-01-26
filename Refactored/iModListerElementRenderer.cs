@@ -8,6 +8,7 @@ namespace Madeline.ModMismatchFormatter
         GUIStyle ModStateStyle { get; set; }
         GUIStyle ModDescriptionStyle { get; set; }
         GUIStyle ModVersionStyle { get; set; }
+        bool useVersionChecking { set; }
 
         void RenderActiveMod(Rect right, ModPair pair);
         void RenderSaveMod(Rect left, ModPair pair);
