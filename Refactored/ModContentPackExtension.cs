@@ -31,7 +31,7 @@ namespace Madeline.ModMismatchFormatter
             List<Mod> activeMods = new List<Mod>();
             foreach(var RimworldMod in LoadedModManager.RunningMods)
             {
-                var mod = new Mod(RimworldMod.Identifier, RimworldMod.Name, RimworldMod.loadOrder);
+                var mod = new Mod(RimworldMod.PackageId, RimworldMod.Name, RimworldMod.loadOrder);
                 if(useVersionChecking)
                     mod.Version = MetaHeaderUtility.GetVersionFromManifestFile(RimworldMod);
                 activeMods.Add(mod);

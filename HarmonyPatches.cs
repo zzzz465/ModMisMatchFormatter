@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Harmony;
+using HarmonyLib;
 using Verse;
 using RimWorld;
 using System.Reflection;
@@ -19,7 +19,7 @@ namespace ModMisMatchWindowPatch
         static HarmonyPatches()
         {
             Log.Message("Patching Madeline.ModMismatchWindow");
-            HarmonyInstance HMInstance = HarmonyInstance.Create("Madeline");
+            Harmony HMInstance = new Harmony("Madeline.ModMismatchWindowPatch");
             MethodInfo original = AccessTools.Method(typeof(ScribeMetaHeaderUtility), "TryCreateDialogsForVersionMismatchWarnings");
             MethodInfo prefix = AccessTools.Method(typeof(HarmonyPatches), "Prefix_TryCreateDialogForVersionMismatchWarnings");
             HMInstance.Patch(original, new HarmonyMethod(prefix));
