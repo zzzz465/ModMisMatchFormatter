@@ -26,7 +26,8 @@ namespace ModMisMatchWindowPatch
 
             var SaveGameOriginal = AccessTools.Method(typeof(GameDataSaveLoader), "SaveGame");
             var SaveGamePrefix = AccessTools.Method(typeof(HarmonyPatches), "Prefix_SaveGame");
-            HMInstance.Patch(SaveGameOriginal, new HarmonyMethod(SaveGamePrefix));
+            var SaveGamePostfix = AccessTools.Method(typeof(HarmonyPatches), nameof(HarmonyPatches.Postfix_SaveGame));
+            HMInstance.Patch(SaveGameOriginal, new HarmonyMethod(SaveGamePrefix), new HarmonyMethod(SaveGamePostfix));
 
             var CheckVersionAndLoadOriginal = AccessTools.Method(typeof(PreLoadUtility), "CheckVersionAndLoad");
             var CheckVersionAndLoadPrefix = AccessTools.Method(typeof(MetaHeaderUtility), "UpdateLastAccessedSaveFileInLoadSelection");
@@ -66,14 +67,23 @@ namespace ModMisMatchWindowPatch
         }
 
         [HarmonyPriority(9999)]
-        static bool Prefix_SaveGame(string fileName)
+        static void Prefix_SaveGame(string fileName)
+        {
+            bool WriteMeta = ModMismatchFormatter.writeMetaToSave;
+            if(WriteMeta)
+            {
+                MetaHeaderUtility.StoreLastSavedFilePath(fileName);
+            }
+        }
+
+        static void Postfix_SaveGame()
         {
             bool WriteMeta = ModMismatchFormatter.writeMetaToSave;
             if(WriteMeta)
             {
                 try
                 {
-                    MetaHeaderUtility.UpdateModVersionMetaHeader(fileName);
+                    MetaHeaderUtility.UpdateModVersionMetaHeader();
                 }
                 catch(Exception ex)
                 {
@@ -81,7 +91,6 @@ namespace ModMisMatchWindowPatch
                     Log.Error(report);
                 }
             }
-            return true;
         }
 
         static void CreateModMismatchWindow(Action confirmedAction, bool useVersionCompare)

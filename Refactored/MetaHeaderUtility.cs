@@ -23,6 +23,7 @@ namespace Madeline.ModMismatchFormatter
         static readonly string MOD_META_DATAS = "modMetaDatas";
         static readonly string VERSION_NODENAME = "version";
         static XDocument xdoc;
+        static string SaveFilePathCache;
         public static void BeginReading(string filePath)
         {
             if(xdoc != null || string.IsNullOrEmpty(CurrnetUsingFilePath))
@@ -117,9 +118,15 @@ namespace Madeline.ModMismatchFormatter
             return true;
         }
 
-        public static void UpdateModVersionMetaHeader(string fileName)
+        public static void StoreLastSavedFilePath(string path)
         {
-            string filePath = GenFilePaths.FilePathForSavedGame(fileName);
+            SaveFilePathCache = path;
+        }
+
+        public static void UpdateModVersionMetaHeader()
+        {
+            string rawFilePath = SaveFilePathCache;
+            string filePath = GenFilePaths.FilePathForSavedGame(rawFilePath);
             MetaHeaderUtility.BeginReading(filePath);
             List<ModMetaHeader> metaHeaders = new List<ModMetaHeader>();
             foreach(var modContentPack in LoadedModManager.RunningMods)
