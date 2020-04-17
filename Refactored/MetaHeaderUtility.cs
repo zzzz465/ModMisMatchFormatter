@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using Verse;
+using System.Text;
 using System.Xml.Linq;
 using System.IO;
 using System.Linq;
@@ -21,9 +22,12 @@ namespace Madeline.ModMismatchFormatter
         public static string LastAccessedSaveFilePathInLoadSelection { get; private set; } // 게임 시작 전, 세이브 파일 선택할때 마지막으로 접근한 파일 경로
         private static string CurrnetUsingFilePath { get; set; }
         static readonly string MOD_META_DATAS = "modMetaDatas";
+        static readonly string MOD_IDENTIFIER_NODENAME = "Identifier";
         static readonly string VERSION_NODENAME = "version";
         static XDocument xdoc;
         static string SaveFilePathCache;
+        static Dictionary<string, string> versionDict = new Dictionary<string, string>();
+        static bool isVersionDictDirty = false;
         public static void BeginReading(string filePath)
         {
             if(xdoc != null || string.IsNullOrEmpty(CurrnetUsingFilePath))
@@ -32,7 +36,7 @@ namespace Madeline.ModMismatchFormatter
                 xdoc = null;
                 CurrnetUsingFilePath = null;
             }
-            
+            SimpleLog.Log($"Trying to load {filePath}");
             xdoc = XDocument.Load(filePath);
             CurrnetUsingFilePath = filePath;
         }
@@ -40,32 +44,66 @@ namespace Madeline.ModMismatchFormatter
         public static void EndReading()
         {
             xdoc.Save(CurrnetUsingFilePath);
+            SimpleLog.Log("Saving xdoc");
             xdoc = null;
             CurrnetUsingFilePath = null;
+            isVersionDictDirty = true;
         }
 
-        public static string GetVersion(string modName)
+        public static string GetVersion(string Identifier)
         {
             string version = "Unknown";
             if(xdoc == null)
-                throw new Exception("invoke BeginReading before using this method");
+                throw new Exception($"invoke BeginReading before calling {nameof(RebuildVersionDict)}");
+
+            if(isVersionDictDirty)
+            {
+                RebuildVersionDict();
+            }
+            
+            if(versionDict.TryGetValue(Identifier, out var value))
+                version = value;
+            
+            return version;
+        }
+
+        static void RebuildVersionDict()
+        {
+            SimpleLog.Log("Rebuilding VersionDict");
+            isVersionDictDirty = false;
+            versionDict.Clear();
+
+            if(xdoc == null)
+            {
+                Log.Error($"invoke BeginReading before calling {nameof(RebuildVersionDict)}");
+                return;
+            }
+            
             try
             {
-                //version = xdoc.Root.Element("meta")?.Element(MOD_META_DATAS)?.Elements().ElementAt(index)?.Element(VERSION_NODENAME)?.Value ?? "Unknown";
                 var ModMetaHeaders = xdoc.Root.Element("meta")?.Element(MOD_META_DATAS);
-                if(ModMetaHeaders != null)
+                if(ModMetaHeaders == null)
+                    return;
+
+                var elements = ModMetaHeaders.Elements();
+                foreach(var node in elements)
                 {
-                    version = (from node in ModMetaHeaders.Elements()
-                               let modNameInNode = node.Element("ModName")?.Value
-                               where string.Equals(modNameInNode, modName)
-                               select node.Element(VERSION_NODENAME)?.Value).FirstOrDefault() ?? "Unknown";
+                    var Identifier = node.Element(MOD_IDENTIFIER_NODENAME)?.Value;
+                    var Version = node.Element(VERSION_NODENAME)?.Value;
+
+                    if(Identifier == null || Version == null) // variable sanity check
+                        continue;
+
+                    versionDict[Identifier] = Version;
+
+                    SimpleLog.Log($"Set {Identifier} {Version}");
                 }
             }
             catch(Exception ex)
             {
-                Log.Warning(ex.ToString());
+                Log.Error($"Exception while rebuilding VersionDict, exception : {ex.Message}");
+                return;
             }
-            return version;
         }
 
         public static void SetVersions(List<ModMetaHeader> metaHeaders)
@@ -76,14 +114,17 @@ namespace Madeline.ModMismatchFormatter
             var meta = xdoc.Root.Element("meta");
             var modVersionsNode = GetElementWithForceCreation(meta, MOD_META_DATAS);
             modVersionsNode.RemoveAll();
+
             if(meta.Element(MOD_META_DATAS) == null)
                 throw new Exception("F");
+
             for(int i = 0; i < metaHeaders.Count; i++)
             {
                 var data = metaHeaders[i];
                 var liNode = new XElement("li");
-                liNode.Add(new XElement("ModName") { Value = data.ModName });
+                liNode.Add(new XElement(MOD_IDENTIFIER_NODENAME) { Value = data.Identifier });
                 liNode.Add(new XElement(VERSION_NODENAME) { Value = data.Version });
+                SimpleLog.Log($"Writing {data.Identifier} {data.Version} to versionNode");
                 modVersionsNode.Add(liNode);
             }
         }
@@ -100,8 +141,23 @@ namespace Madeline.ModMismatchFormatter
 
         public static bool isVersionSame(List<Madeline.ModMismatchFormatter.Mod> saveMods, List<Madeline.ModMismatchFormatter.Mod> activeMods)
         { // saveMods와 activeMods는 길이가 무조건 같음
+            SimpleLog.Log("Checking version difference...");
             if(saveMods.Count != activeMods.Count)
-                throw new Exception("Error in Version Compare logic in exception 1. please contact to modder");
+            {
+                string ListOfSaveMods = string.Join(", ", saveMods.Select(mod => mod.Identifier));
+                string ListOfActiveMods = string.Join(", ", activeMods.Select(mod => mod.Identifier));
+
+                StringBuilder exceptionMessage = new StringBuilder();
+
+                exceptionMessage.AppendLine("saveMods length and activeMods length are different.");
+                exceptionMessage.AppendLine($"Save Mod Count : {saveMods.Count} Active Mods Count : {activeMods.Count}");
+                exceptionMessage.AppendLine("Active Mods List");
+                exceptionMessage.AppendLine(ListOfActiveMods);
+                exceptionMessage.AppendLine("Save Mods List");
+                exceptionMessage.AppendLine(ListOfSaveMods);
+
+                throw new Exception(exceptionMessage.ToString());
+            }
                 
             int length = saveMods.Count;
             for(int i = 0; i < length; i++)
@@ -109,12 +165,29 @@ namespace Madeline.ModMismatchFormatter
                 var save = saveMods[i];
                 var active = activeMods[i];
 
-                if(save.ModName != active.ModName)
-                    throw new Exception("Error in Version Compare Logic in exception 2, please contact to modder.");
+                SimpleLog.Log($"Comparing {save.Identifier} ({save.Version}) - {active.Identifier} ({active.Version})");
+
+                if(save.Identifier != active.Identifier)
+                {
+                    string ListOfSaveMods = string.Join(", ", saveMods.Select(mod => mod.Identifier));
+                    string ListOfActiveMods = string.Join(", ", activeMods.Select(mod => mod.Identifier));
+
+                    StringBuilder exceptionMessage = new StringBuilder();
+
+                    exceptionMessage.AppendLine($"two mod's identifier is different while comparing version, save mod identifier : {save.Identifier}, active mod identifier : {active.Identifier}");
+                    exceptionMessage.AppendLine($"Save Mod Count : {saveMods.Count} Active Mods Count : {activeMods.Count}");
+                    exceptionMessage.AppendLine("Active Mods List");
+                    exceptionMessage.AppendLine(ListOfActiveMods);
+                    exceptionMessage.AppendLine("Save Mods List");
+                    exceptionMessage.AppendLine(ListOfSaveMods);
+
+                    throw new Exception(exceptionMessage.ToString());
+                }
 
                 if(save.Version != active.Version)
                     return false;
             }
+
             return true;
         }
 
@@ -131,9 +204,10 @@ namespace Madeline.ModMismatchFormatter
             List<ModMetaHeader> metaHeaders = new List<ModMetaHeader>();
             foreach(var modContentPack in LoadedModManager.RunningMods)
             {
-                var metadata = modContentPack.GetMetaData();
+                // var metadata = modContentPack.GetMetaData();
                 var version = MetaHeaderUtility.GetVersionFromManifestFile(modContentPack);
-                metaHeaders.Add(new ModMetaHeader() { ModName = metadata.Name, Version = version });
+                metaHeaders.Add(new ModMetaHeader() { Identifier = modContentPack.PackageId, Version = version });
+                SimpleLog.Log($"Add metadata to metaHeaders list : {modContentPack.PackageId}, {version}");
             }
             MetaHeaderUtility.SetVersions(metaHeaders);
             MetaHeaderUtility.EndReading();
@@ -172,7 +246,7 @@ namespace Madeline.ModMismatchFormatter
 
     public struct ModMetaHeader
     {
-        public string ModName;
+        public string Identifier;
         public string Version;
     }
 }

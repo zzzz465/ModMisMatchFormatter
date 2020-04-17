@@ -37,16 +37,20 @@ namespace ModMisMatchWindowPatch
         [HarmonyPriority(9999)]
         static bool Prefix_TryCreateDialogForVersionMismatchWarnings(ref bool __result, Action confirmedAction)
         {
+            SimpleLog.Log("Checking mod mismatch");
             bool isModListSame = ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _);
             bool useVersionCompare = ModMismatchFormatter.useVersionCompare;
 
             if(isModListSame)
             {
+                SimpleLog.Log("ModList are same");
                 if(useVersionCompare)
                 {
-                    bool isVersionSame = MetaHeaderUtility.isVersionSame(ModContentPackExtension.GetModsFromSave(), ModContentPackExtension.GetModsFromActive());
+                    SimpleLog.Log("use version checking");
+                    bool isVersionSame = MetaHeaderUtility.isVersionSame(ModContentPackExtension.GetModsFromSave(useVersionCompare), ModContentPackExtension.GetModsFromActive(useVersionCompare));
                     if(!isVersionSame)
                     {
+                        SimpleLog.Log("Version is different...");
                         string warningMessage = "Checking mismatch for mod and mod versions... please wait";
                         Messages.Message(warningMessage, MessageTypeDefOf.SilentInput, false);
                         CreateModMismatchWindow(confirmedAction, useVersionCompare);
@@ -60,6 +64,7 @@ namespace ModMisMatchWindowPatch
             }
             else
             {
+                SimpleLog.Log("Mod mismatch!");
                 CreateModMismatchWindow(confirmedAction, useVersionCompare);
                 __result = true;
                 return false;
@@ -69,6 +74,7 @@ namespace ModMisMatchWindowPatch
         [HarmonyPriority(9999)]
         static void Prefix_SaveGame(string fileName)
         {
+            SimpleLog.Log("Caching last saved file path");
             bool WriteMeta = ModMismatchFormatter.writeMetaToSave;
             if(WriteMeta)
             {
@@ -78,6 +84,7 @@ namespace ModMisMatchWindowPatch
 
         static void Postfix_SaveGame()
         {
+            SimpleLog.Log("Trying to write additional meta headers to save file...");
             bool WriteMeta = ModMismatchFormatter.writeMetaToSave;
             if(WriteMeta)
             {

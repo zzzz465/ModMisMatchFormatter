@@ -10,6 +10,7 @@ namespace Madeline.ModMismatchFormatter
         static Dictionary<ModContentPack, ModMetaData> pairs = new Dictionary<ModContentPack, ModMetaData>();
         public static ModMetaData GetMetaData(this ModContentPack pack)
         {
+            throw new NotImplementedException();
             if(!(pairs.ContainsKey(pack)))
             {
                 SetModContentPackInDict(pack);
@@ -20,6 +21,7 @@ namespace Madeline.ModMismatchFormatter
 
         static void SetModContentPackInDict(ModContentPack pack)
         {
+            throw new NotImplementedException();
             var result = from meta in ModsConfig.ActiveModsInLoadOrder
                          where meta.Name == pack.Name
                          select meta;
@@ -40,7 +42,7 @@ namespace Madeline.ModMismatchFormatter
         }
         public static List<Mod> GetModsFromSave(bool CheckModVersion = false)
         {
-            List<Mod> saveMods = new List<Mod>();
+            List<Mod> saveMods = null;
             if (ScribeMetaHeaderUtility.loadedModNamesList != null && ScribeMetaHeaderUtility.loadedModIdsList != null)
             {
                 CheckSaveHeaderValid();
@@ -64,9 +66,9 @@ namespace Madeline.ModMismatchFormatter
             for(int i = 0; i < ScribeMetaHeaderUtility.loadedModNamesList.Count; i++)
             {
                 var mod = new Mod(ScribeMetaHeaderUtility.loadedModIdsList[i], ScribeMetaHeaderUtility.loadedModNamesList[i], i);
-                string modName = mod.ModName;
+                string identifier = mod.Identifier;
                 if(readModVersion)
-                    mod.Version = MetaHeaderUtility.GetVersion(modName);
+                    mod.Version = MetaHeaderUtility.GetVersion(identifier);
                 saveMods.Add(mod);
             }
             MetaHeaderUtility.EndReading();

@@ -93,6 +93,7 @@
     <Compile Include="Refactored\ModPair.cs" />
     <Compile Include="Refactored\ModPresenter.cs" />
     <Compile Include="Refactored\Settings.cs" />
+    <Compile Include="Refactored\SimpleLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
