@@ -54,7 +54,7 @@ namespace Madeline.ModMismatchFormatter
         {
             int ItemCount = pairs.Count + 1;
             //윗쪽 타이틀 설정
-			Rect TitleRect = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
+            Rect TitleRect = new Rect(canvas.xMin, canvas.yMin, canvas.width, 60f);
             Widgets.Label(TitleRect, "ModsMismatchWarningTitle".Translate());
 
             //1개 모드 사이즈
@@ -67,14 +67,14 @@ namespace Madeline.ModMismatchFormatter
             //막대기 사이즈
             Rect Bar = new Rect(0, 0, RectWidth, 2f);
 
-			//하위 버튼의 크기
-			Vector2 ButtonSize = new Vector2(RectWidth - 50f, 40f);
+            //하위 버튼의 크기
+            Vector2 ButtonSize = new Vector2(RectWidth - 50f, 40f);
             
             //TODO - 클래스로 분류해내기
             //좌측(Save)
             GUI.contentColor = Color.white;
-			Rect LeftSaveRect = new Rect((canvas.width / 2) - RectWidth, TitleRect.yMax, RectWidth, canvas.height - TitleRect.height - 60); // 이걸 가지고 다른 모든 상자들의 길이를 측정함
-			Rect LeftinSaveRect = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin, LeftSaveRect.width - 18f, SingleModItemRect.height * ItemCount + Bar.height * (ItemCount - 1));
+            Rect LeftSaveRect = new Rect((canvas.width / 2) - RectWidth, TitleRect.yMax, RectWidth, canvas.height - TitleRect.height - 60); // 이걸 가지고 다른 모든 상자들의 길이를 측정함
+            Rect LeftinSaveRect = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin, LeftSaveRect.width - 18f, SingleModItemRect.height * ItemCount + Bar.height * (ItemCount - 1));
             Widgets.DrawBoxSolid(LeftSaveRect, ColorPresets.Background);
 
             Rect LeftTitle = new Rect(LeftSaveRect.xMin, LeftSaveRect.yMin - 26f, RectWidth - 18f, 26f); // 18f는 스크롤바 크기
@@ -119,12 +119,12 @@ namespace Madeline.ModMismatchFormatter
             
 
             float ButtonXPos = LeftSaveRect.xMin + ( (LeftSaveRect.width - ButtonSize.x) / 2 ) - 7f; // micro control. I'm lack of math skill.
-			float ButtonYPos = canvas.yMax - 10f - ButtonSize.y;
+            float ButtonYPos = canvas.yMax - 10f - ButtonSize.y;
             Rect LoadFromSaveButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
             RenderLoadFromSaveButton(LoadFromSaveButton);
 
             ButtonXPos = RightActiveRect.xMin + ( (RightActiveRect.width - ButtonSize.x) / 2 ) - 7f;
-			Rect LoadAnywayButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
+            Rect LoadAnywayButton = new Rect(new Vector2(ButtonXPos, ButtonYPos), ButtonSize);
             RenderLoadAnywayButton(LoadAnywayButton);
         }
 
@@ -145,8 +145,11 @@ namespace Madeline.ModMismatchFormatter
         {
             if (Widgets.ButtonText(LoadFromSaveRect, "ChangeLoadedMods".Translate()))
             {
-                ModsConfig.SetActiveToList(ScribeMetaHeaderUtility.loadedModIdsList);
-                ModsConfig.Save();
+                if (Current.ProgramState == ProgramState.Entry)
+                {
+                    ModsConfig.SetActiveToList(ScribeMetaHeaderUtility.loadedModIdsList);
+                }
+                ModsConfig.SaveFromList(ScribeMetaHeaderUtility.loadedModIdsList);
                 ModsConfig.RestartFromChangedMods();
             }
         }
