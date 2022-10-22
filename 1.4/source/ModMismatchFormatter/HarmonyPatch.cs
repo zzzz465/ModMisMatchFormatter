@@ -53,10 +53,7 @@ namespace ModMismatchFormatter
         static IEnumerable<CodeInstruction> Transpiler_DoWindowContents(IEnumerable<CodeInstruction> originalInstructions)
         {
             Log.Message("original insns");
-            foreach(var insn in originalInstructions)
-            {
-                Log.Message(insn.ToString());
-            }
+            Log.Message(String.Join("\n", originalInstructions.Select(x => x.ToString())));
             
             var insns = originalInstructions.ToList();
             var result = new List<CodeInstruction>();
@@ -68,6 +65,7 @@ namespace ModMismatchFormatter
             {
                 throw new Exception("cannot find insn which opcode label is IL_012A");
             }
+            off += 4; // becauase off is pointing Stloc_1
             var IL_012A_label = insns[off].operand;
 
             // step 2. find IL_00CB
@@ -95,9 +93,7 @@ namespace ModMismatchFormatter
             result.AddRange(insns.Skip(off3));
 
             Log.Message("patched insns");
-            foreach(var insn in result) {
-                Log.Message(insn.ToString());
-            }
+            Log.Message(String.Join("\n", result.Select(x => x.ToString())));
 
             return result;
         }
