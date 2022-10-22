@@ -58,16 +58,6 @@ namespace ModMismatchFormatter
             var insns = originalInstructions.ToList();
             var result = new List<CodeInstruction>();
 
-            // step 1. find label IL_012A which is our jmp target.
-            var IL_00D6_target = new List<OpCode>() { OpCodes.Stloc_1, OpCodes.Ldarg_0, OpCodes.Ldfld, OpCodes.Call, OpCodes.Brtrue_S };
-            var off = FindIndexOf(insns, IL_00D6_target);
-            if (off == -1)
-            {
-                throw new Exception("cannot find insn which opcode label is IL_012A");
-            }
-            off += 4; // becauase off is pointing Stloc_1
-            var IL_012A_label = insns[off].operand;
-
             // step 2. find IL_00CB
             var IL_00CB_target = new List<OpCode>() { OpCodes.Ldc_R4, OpCodes.Add, OpCodes.Add, OpCodes.Stloc_1, OpCodes.Ldarg_0 };
             var off2 = FindIndexOf(insns, IL_00CB_target);
@@ -86,10 +76,8 @@ namespace ModMismatchFormatter
 
             // insert insns before IL_00CB
             result.AddRange(insns.Take(off2));
-            result.Add(new CodeInstruction(OpCodes.Jmp, IL_012A_label));
 
             // insert remaining ILs
-
             result.AddRange(insns.Skip(off3));
 
             Log.Message("patched insns");
@@ -116,7 +104,6 @@ namespace ModMismatchFormatter
 
                 var zipped = slice.Zip(target, (first, second) => (first, second));
 
-                Log.Message("found");
                 if (zipped.All((tuple) => tuple.first.opcode == tuple.second))
                 {
                     return i - (target.Count - 1);
