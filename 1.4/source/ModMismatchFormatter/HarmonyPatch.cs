@@ -71,12 +71,13 @@ namespace ModMismatchFormatter
             var IL_012A_label = insns[off].operand;
 
             // step 2. find IL_00CB
-            var IL_00CB_target = new List<OpCode>() { OpCodes.Ldc_I4, OpCodes.Add, OpCodes.Add, OpCodes.Stloc_1, OpCodes.Ldarg_0 };
+            var IL_00CB_target = new List<OpCode>() { OpCodes.Ldc_R4, OpCodes.Add, OpCodes.Add, OpCodes.Stloc_1, OpCodes.Ldarg_0 };
             var off2 = FindIndexOf(insns, IL_00CB_target);
             if (off2 == -1)
             {
                 throw new Exception("cannot find insn IL_00CB");
             }
+            off2 += 4; // because off2 is pointing 4 previous insn.
 
             var IL_012A_target = new List<OpCode>() { OpCodes.Ldloc_1, OpCodes.Ldloc_2, OpCodes.Ldloc_1, OpCodes.Ldloc_0, OpCodes.Call };
             var off3 = FindIndexOf(insns, IL_012A_target);
@@ -119,7 +120,7 @@ namespace ModMismatchFormatter
 
                 var zipped = slice.Zip(target, (first, second) => (first, second));
 
-                foreach (var pair in zipped)
+                Log.Message("found");
                 if (zipped.All((tuple) => tuple.first.opcode == tuple.second))
                 {
                     return i - (target.Count - 1);
