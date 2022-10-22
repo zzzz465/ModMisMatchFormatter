@@ -120,14 +120,10 @@ namespace ModMismatchFormatter
                 var zipped = slice.Zip(target, (first, second) => (first, second));
 
                 foreach (var pair in zipped)
+                if (zipped.All((tuple) => tuple.first.opcode == tuple.second))
                 {
-                    if (pair.first.opcode != pair.second)
-                    {
-                        return -1;
-                    }
+                    return i - (target.Count - 1);
                 }
-
-                return i - (target.Count - 1);
             }
 
             return -1;
