@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HarmonyPatch.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="ModUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

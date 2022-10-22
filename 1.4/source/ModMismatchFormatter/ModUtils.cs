@@ -9,8 +9,6 @@ namespace ModMismatchFormatter
 {
     public static class ModUtils
     {
-        public static List<ModContentPack> 
-
         public static List<ModContentPack> GetEnabledMods()
         {
             return LoadedModManager.RunningMods.ToList();

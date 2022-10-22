@@ -8,6 +8,8 @@ namespace ModMismatchFormatter
         {
             Log.Message("Hello World!");
 
+            HarmonyPatch.Patch();
+
             var enabledMods = ModUtils.GetEnabledMods();
 
             foreach (var mod in enabledMods)
