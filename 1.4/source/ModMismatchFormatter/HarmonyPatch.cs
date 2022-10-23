@@ -30,12 +30,8 @@ namespace ModMismatchFormatter
             harmony.Patch(original, new HarmonyMethod(prefix));
 
             MethodInfo DoWindowContents_original = AccessTools.Method(typeof(RimWorld.Dialog_ModMismatch), "DoWindowContents");
-            MethodInfo DoWindowContents_transpiler = AccessTools.Method(typeof(HarmonyPatch), "Transpiler_DoWindowContents");
-            harmony.Patch(DoWindowContents_original, null, null, new HarmonyMethod(DoWindowContents_transpiler));
-
-            MethodInfo DoModList_original = AccessTools.Method(typeof(RimWorld.Dialog_ModMismatch), "DoModList");
-            MethodInfo DoModList_prefix = AccessTools.Method(typeof(HarmonyPatch), "Prefix_DoModList");
-            harmony.Patch(DoModList_original, new HarmonyMethod(DoModList_prefix));
+            MethodInfo DoWindowContents_prefix = AccessTools.Method(typeof(HarmonyPatch), "Prefix_DoWindowContents");
+            harmony.Patch(DoWindowContents_original, new HarmonyMethod(DoWindowContents_prefix));
         }
 
         static bool Prefix_TryCreateDialogForVersionMismatchWarnings(ref bool __result, Action confirmedAction)
@@ -44,46 +40,10 @@ namespace ModMismatchFormatter
             return true;
         }
 
-        static bool Prefix_DoModList(ref Rect r, ref List<string> modList, ref Vector2 scrollPos, ref Color? rowColor)
+        static bool Prefix_DoWindowContents(Rect rect)
         {
-            Log.Message("prefix_domodlist called");
-            return true;
-        }
-
-        static IEnumerable<CodeInstruction> Transpiler_DoWindowContents(IEnumerable<CodeInstruction> originalInstructions)
-        {
-            Log.Message("original insns");
-            Log.Message(String.Join("\n", originalInstructions.Select(x => x.ToString())));
-            
-            var insns = originalInstructions.ToList();
-            var result = new List<CodeInstruction>();
-
-            // step 2. find IL_00CB
-            var IL_00CB_target = new List<OpCode>() { OpCodes.Ldc_R4, OpCodes.Add, OpCodes.Add, OpCodes.Stloc_1, OpCodes.Ldarg_0 };
-            var off2 = FindIndexOf(insns, IL_00CB_target);
-            if (off2 == -1)
-            {
-                throw new Exception("cannot find insn IL_00CB");
-            }
-            off2 += 4; // because off2 is pointing 4 previous insn.
-
-            var IL_012A_target = new List<OpCode>() { OpCodes.Ldloc_1, OpCodes.Ldloc_2, OpCodes.Ldloc_1, OpCodes.Ldloc_0, OpCodes.Call };
-            var off3 = FindIndexOf(insns, IL_012A_target);
-            if (off3 == -1)
-            {
-                throw new Exception("cannot find insn IL_012A");
-            }
-
-            // insert insns before IL_00CB
-            result.AddRange(insns.Take(off2));
-
-            // insert remaining ILs
-            result.AddRange(insns.Skip(off3));
-
-            Log.Message("patched insns");
-            Log.Message(String.Join("\n", result.Select(x => x.ToString())));
-
-            return result;
+            Renderer.DoWindowContents(rect);
+            return false;
         }
 
         // find starting index of given opcode list
