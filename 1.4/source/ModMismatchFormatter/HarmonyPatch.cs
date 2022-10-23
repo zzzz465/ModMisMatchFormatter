@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using RimWorld;
 
 namespace ModMismatchFormatter
 {
@@ -40,9 +41,9 @@ namespace ModMismatchFormatter
             return true;
         }
 
-        static bool Prefix_DoWindowContents(Rect rect)
+        static bool Prefix_DoWindowContents(Rect inRect, Dialog_ModMismatch __instance)
         {
-            Renderer.DoWindowContents(rect);
+            Renderer.DoWindowContents(inRect, __instance);
             return false;
         }
 
