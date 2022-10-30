@@ -38,6 +38,7 @@ namespace ModMismatchFormatter
         static bool Prefix_TryCreateDialogForVersionMismatchWarnings(ref bool __result, Action confirmedAction)
         {
             Verse.Log.Message("TryCreateDIalogForVersionMismatchWarnings called");
+            Renderer.InitScrollPosition(Vector2.zero);
             return true;
         }
 

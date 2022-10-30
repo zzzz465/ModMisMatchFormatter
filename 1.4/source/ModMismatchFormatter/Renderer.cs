@@ -20,9 +20,23 @@ namespace ModMismatchFormatter
         private static MethodInfo HandleSaveCurrentModList = AccessTools.Method(typeof(Dialog_ModMismatch), "HandleSaveCurrentModList");
         private static MethodInfo HandleLoadAnywayClicked = AccessTools.Method(typeof(Dialog_ModMismatch), "HandleLoadAnywayClicked");
         private static MethodInfo HandleChangeLoadedModClicked = AccessTools.Method(typeof(Dialog_ModMismatch), "HandleChangeLoadedModClicked");
+        private static Vector2 scrollPosition = Vector2.zero;
+
+        public static void InitScrollPosition(Vector2 scrollPosition)
+        {
+            Renderer.scrollPosition = scrollPosition;
+        }
 
         public static void DoWindowContents(Rect root, Dialog_ModMismatch __instance)
         {
+            var loadedModIdsList = AccessTools.Field(typeof(Dialog_ModMismatch), "loadedModIdsList").GetValue(__instance) as List<string>;
+            var runningModIdsList = AccessTools.Field(typeof(Dialog_ModMismatch), "runningModIdsList").GetValue(__instance) as List<string>;
+
+            Log.Message(loadedModIdsList.ToString2());
+            Log.Message(runningModIdsList.ToString2());
+
+            var diffs = ModDiff.DiffMods(runningModIdsList, loadedModIdsList);
+
             float num = (root.width - 20f) / 3f;
             float num2 = 0f;
             float x = 0f;
@@ -40,7 +54,7 @@ namespace ModMismatchFormatter
             Widgets.Label(new Rect(x, num2, num, Text.LineHeight), "AddedModsList".Translate());
             num2 += Text.LineHeight + 10f;
             float height3 = root.height - num2 - Renderer.ButtonHeight - 10f;
-            // this.DoModList(new Rect(x, num2, num, height3), this.addedModsList, ref this.addedModListScrollPosition, new Color?(new Color(0.27f, 0.4f, 0.1f)));
+            Renderer.DrawList(new Rect(x, num2, num, height3), diffs.Select(t => t.Item1), ref scrollPosition);
             num2 = num3;
             Widgets.Label(new Rect(x2, num2, num, Text.LineHeight), "MissingModsList".Translate());
             num2 += Text.LineHeight + 10f;
@@ -75,19 +89,34 @@ namespace ModMismatchFormatter
             }
         }
 
-        public static void DoModListLeft(Rect rect, List<string> addedModsList, ref Vector2 scrollPosition, Color color)
+        // TODO: items 에 string 대신 struct 받도록 하기
+        public static void DrawList(Rect root, IEnumerable<string> items, ref Vector2 scrollPosition)
         {
-
+            int num = 0;
+            Rect viewRect = new Rect(0f, 0f, root.width - 16f, (float)items.Count() * Renderer.ModRowHeight);
+            Widgets.BeginScrollView(root, ref scrollPosition, viewRect, true);
+            foreach (string modName in items)
+            {
+                Rect row = new Rect(0f, (float)num * Renderer.ModRowHeight, root.width, Renderer.ModRowHeight);
+                //if (rowColor != null)
+                //{
+                //    Widgets.DrawBoxSolid(rect, rowColor.Value);
+                //}
+                Renderer.DrawRow(row, modName, num);
+                num++;
+            }
+            Widgets.EndScrollView();
         }
 
-        public static void DoModListMiddle(Rect rect, List<string> missingModsList, ref Vector2 scrollPosition, Color color)
+        public static void DrawRow(Rect rect, string label, int index)
         {
-
-        }
-
-        public static void DoModListRight(Rect rect, List<string> missingModsList, ref Vector2 scrollPosition, Color color)
-        {
-
+            if (index % 2 == 0)
+            {
+                Widgets.DrawLightHighlight(rect);
+            }
+            rect.xMin += 4f;
+            rect.xMax -= 4f;
+            Widgets.Label(rect, label);
         }
     }
 }
