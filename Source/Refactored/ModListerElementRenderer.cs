@@ -105,6 +105,18 @@ namespace Madeline.ModMismatchFormatter
 
             float leftBoxWidth = 16f;
             Rect ModStateRect = new Rect(root.x, root.y, leftBoxWidth, root.height);
+            // padding
+            switch (modState)
+            {
+                case ModState.Add:
+                    ModStateRect.x += 4;
+                    break;
+                case ModState.Remove:
+                    ModStateRect.x += 6;
+                    ModStateRect.y -= 2;
+                    break;
+            }
+
             RenderModState(ModStateRect, modState);
 
             Rect DescriptionRect = new Rect(ModStateRect.xMax, root.y, root.width - ModStateRect.width, root.height);
@@ -128,7 +140,8 @@ namespace Madeline.ModMismatchFormatter
             if(minimumHeight > Root.height)
                 throw new Exception($"Root rect's height is smaller than minimum size {minimumHeight}");
             
-            Rect DescriptionRect = new Rect(Root.x, Root.y, Root.width, DescriptionTextHeight);
+            // HACK: somehow text alignment is not correct so move label 3 pixel down
+            Rect DescriptionRect = new Rect(Root.x, Root.y + 3, Root.width, DescriptionTextHeight);
             GUI.Label(DescriptionRect, description, ModDescriptionStyle);
             
             if(useVersionChecking)
