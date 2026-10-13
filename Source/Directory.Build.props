@@ -1,0 +1,24 @@
+<Project>
+  <!-- Machine-specific overrides (e.g. RimWorld17Dir). Not committed. -->
+  <Import Project="$(MSBuildThisFileDirectory)Local.props" Condition="Exists('$(MSBuildThisFileDirectory)Local.props')" />
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    RimWorld 1.7 (Waylith engine) has no reference package on NuGet yet, so the
+    1.7 build compiles against a local copy of the game. RimWorld17Dir must point
+    at the folder that holds the 1.7 Assembly-CSharp.dll and UnityStubs.dll
+    (the game root on the unstable branch). It is auto-detected from the default
+    Steam path when that install is on 1.7.
+  -->
+  <PropertyGroup>
+    <RimWorldSteamDir Condition="'$(RimWorldSteamDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldSteamDir>
+    <RimWorld17Dir Condition="'$(RimWorld17Dir)' == '' and Exists('$(RimWorldSteamDir)\Waylith.dll')">$(RimWorldSteamDir)</RimWorld17Dir>
+  </PropertyGroup>
+</Project>

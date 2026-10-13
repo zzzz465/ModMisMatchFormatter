@@ -1,0 +1,46 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Validate mod XML
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, xml.etree.ElementTree as ET
+          files = [p for p in pathlib.Path('.').rglob('*.xml') if not any(part in ('bin', 'obj', '.git') for part in p.parts)]
+          failed = False
+          for path in files:
+              try:
+                  ET.parse(path)
+              except ET.ParseError as e:
+                  print(f'::error file={path}::{e}')
+                  failed = True
+          print(f'checked {len(files)} XML files')
+          sys.exit(1 if failed else 0)
+          PY
+
+      # RimWorld 1.7 has no reference package on NuGet yet, so CI builds the
+      # 1.6 (net472) target only. The 1.7 target is built locally with RimWorld17Dir.
+      - name: Build
+        run: dotnet build Source/ModMismatchFormatter.slnx -c Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: assemblies-1.6
+          path: 1.6/Assemblies/ModMisMatchWindowPatch.dll

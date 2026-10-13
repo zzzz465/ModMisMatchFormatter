@@ -356,3 +356,5 @@ MigrationBackup/
 
 #custom folders
 obj
+# Machine-specific MSBuild overrides
+Source/Local.props
