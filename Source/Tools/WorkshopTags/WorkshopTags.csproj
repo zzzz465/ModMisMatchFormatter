@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Sets the Workshop item's tags (Mod + supportedVersions), which steamcmd cannot do.
+    Uses the Steamworks.NET build and steam_api64.dll that ship with RimWorld 1.7 (RimWorld17Dir),
+    and talks to the Steam client running on this PC. Not part of the solution or CI.
+    Usage is in the README (Releasing section).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <Target Name="RequireRimWorld17" BeforeTargets="ResolveAssemblyReferences" Condition="'$(RimWorld17Dir)' == ''">
+    <Error Text="RimWorld17Dir is not set. Point it at a RimWorld 1.7 install (see README)." />
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="com.rlabrecque.steamworks.net" HintPath="$(RimWorld17Dir)\com.rlabrecque.steamworks.net.dll" />
+    <None Include="$(RimWorld17Dir)\steam_api64.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>

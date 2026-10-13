@@ -54,8 +54,22 @@ The Workshop description lives in [`workshop/description.bbcode`](workshop/descr
 BBCode, at most 8000 characters, no `"` or `\`). Every release replaces the Workshop description with it,
 and the script reads the published text back to check it arrived unchanged. To publish only a
 description change, run the workflow manually with `sync-description`. Title, preview, visibility and
-tags are left alone; steamcmd cannot set tags, so the version tags only change when the item is updated
-from the in-game uploader.
+tags are left alone.
+
+steamcmd cannot set Workshop tags, and the Web API method for it needs a publisher key. When
+`supportedVersions` changes, update the version tags locally with the Steamworks API instead (the same
+call RimWorld's in-game uploader makes, without uploading files):
+
+```
+dotnet run --project Source/Tools/WorkshopTags -c Release -- --dry-run
+dotnet run --project Source/Tools/WorkshopTags -c Release
+```
+
+Run it from the repository root with the Steam client running and logged in as the item's owner. It needs
+`RimWorld17Dir` (it uses the Steamworks.NET build and `steam_api64.dll` shipped with RimWorld 1.7), sets the
+tags to `Mod` + `supportedVersions` from `About/About.xml`, and reads them back from Steam. Note that
+a steamcmd login with the same account elsewhere (including the release workflow) can sign the local Steam
+client out.
 
 The Workshop upload uses steamcmd with a cached login, from two repository secrets:
 
