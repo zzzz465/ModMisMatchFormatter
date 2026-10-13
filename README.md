@@ -35,4 +35,18 @@ branch; otherwise set it in `Source/Local.props` (git-ignored):
 </Project>
 ```
 
-CI builds and tests the 1.6 target only. The assemblies for 1.0–1.5 are prebuilt and no longer rebuilt from source.
+## CI
+
+`.github/workflows/build.yml` has two jobs:
+
+- `build` (Ubuntu): validates the mod XML, builds the 1.6 target and runs the tests.
+- `build-1-7` (Windows): downloads the RimWorld unstable branch with steamcmd, builds the 1.7
+  target against it and uploads the DLL. It needs two repository secrets and is skipped with a
+  warning when they are missing:
+  - `STEAM_USERNAME`: a Steam account that owns RimWorld.
+  - `STEAM_CONFIG_VDF`: base64 of `config/config.vdf` from a steamcmd that has logged in to that
+    account (so no Steam Guard code is needed). It expires eventually and must then be refreshed.
+
+  Game files are not cached or uploaded, and the job does not run for pull requests from forks.
+
+The assemblies for 1.0–1.5 are prebuilt and no longer rebuilt from source.

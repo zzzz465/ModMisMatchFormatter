@@ -35,8 +35,7 @@ jobs:
           sys.exit(1 if failed else 0)
           PY
 
-      # RimWorld 1.7 has no reference package on NuGet yet, so CI builds the
-      # 1.6 (net472) target only. The 1.7 target is built locally with RimWorld17Dir.
+      # Builds the 1.6 (net472) target; the 1.7 target needs game files (see build-1-7).
       - name: Build
         run: dotnet build Source/ModMismatchFormatter.slnx -c Release
 
@@ -47,3 +46,73 @@ jobs:
         with:
           name: assemblies-1.6
           path: 1.6/Assemblies/ModMisMatchWindowPatch.dll
+
+  # RimWorld 1.7 (Waylith) has no reference package on NuGet yet, so this job downloads the
+  # unstable branch with steamcmd using the repository owner's Steam login and compiles against it.
+  # Secrets: STEAM_USERNAME, STEAM_CONFIG_VDF (base64 of a logged-in steamcmd config/config.vdf).
+  # Game files are never cached or uploaded: on a public repository, pull requests from forks can
+  # restore caches. Fork pull requests do not get secrets, so the job is skipped for them.
+  build-1-7:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    env:
+      STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+      STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check Steam secrets
+        id: secrets
+        shell: pwsh
+        run: |
+          if ($env:STEAM_USERNAME -and $env:STEAM_CONFIG_VDF) {
+            "available=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "available=false" >> $env:GITHUB_OUTPUT
+            "::warning::RimWorld 1.7 build skipped: STEAM_USERNAME / STEAM_CONFIG_VDF secrets are not set."
+          }
+
+      - name: Download RimWorld 1.7 (unstable branch)
+        if: steps.secrets.outputs.available == 'true'
+        shell: pwsh
+        run: |
+          $steamcmdDir = Join-Path $env:RUNNER_TEMP 'steamcmd'
+          $gameDir = Join-Path $env:RUNNER_TEMP 'rimworld'
+          $refsDir = Join-Path $env:RUNNER_TEMP 'rimworld-1.7-refs'
+          New-Item -ItemType Directory -Force $steamcmdDir, "$steamcmdDir\config", $refsDir | Out-Null
+
+          Invoke-WebRequest https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip -OutFile "$steamcmdDir\steamcmd.zip"
+          Expand-Archive "$steamcmdDir\steamcmd.zip" $steamcmdDir -Force
+          # The first run only updates steamcmd itself.
+          & "$steamcmdDir\steamcmd.exe" +quit | Out-Null
+
+          [IO.File]::WriteAllBytes("$steamcmdDir\config\config.vdf", [Convert]::FromBase64String($env:STEAM_CONFIG_VDF))
+          try {
+            & "$steamcmdDir\steamcmd.exe" +force_install_dir $gameDir +login $env:STEAM_USERNAME +app_update 294100 -beta unstable +quit
+          } finally {
+            Remove-Item -Force "$steamcmdDir\config\config.vdf" -ErrorAction SilentlyContinue
+          }
+
+          foreach ($file in 'Assembly-CSharp.dll', 'UnityStubs.dll', 'Version.txt') {
+            if (-not (Test-Path "$gameDir\$file")) { throw "steamcmd did not produce $file (login or download failed)." }
+            Copy-Item "$gameDir\$file" $refsDir
+          }
+          "RimWorld $(Get-Content "$refsDir\Version.txt")"
+          Remove-Item -Recurse -Force $gameDir
+          "RIMWORLD17_DIR=$refsDir" >> $env:GITHUB_ENV
+          # steamcmd exits non-zero even on success; the files checked above are the real result.
+          $global:LASTEXITCODE = 0
+
+      - name: Build 1.7
+        if: steps.secrets.outputs.available == 'true'
+        run: dotnet build Source/ModMismatchFormatter/ModMismatchFormatter.csproj -c Release -p:RimWorld17Dir=${{ env.RIMWORLD17_DIR }}
+
+      - uses: actions/upload-artifact@v4
+        if: steps.secrets.outputs.available == 'true'
+        with:
+          name: assemblies-1.7
+          path: 1.7/Assemblies/ModMisMatchWindowPatch.dll
