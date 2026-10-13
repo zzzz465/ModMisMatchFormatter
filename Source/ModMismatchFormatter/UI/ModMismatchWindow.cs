@@ -205,11 +205,11 @@ public sealed class ModMismatchWindow : Window
         Widgets.Label(new Rect(rect.x + 4f, rect.y, MarkWidth, nameHeight), Palette.Mark(state));
         Widgets.Label(nameRect, mod.Name.Truncate(nameRect.width, truncateCache));
 
-        if (showVersions)
+        if (showVersions && VersionLabel(mod, row, isSavedSide) is { } versionLabel)
         {
             Text.Font = GameFont.Tiny;
-            GUI.color = Color.gray;
-            Widgets.Label(new Rect(nameRect.x, nameRect.yMax, nameRect.width, rect.height - nameHeight), VersionLabel(mod, row, isSavedSide));
+            GUI.color = state == RowState.Unchanged ? Color.gray : Palette.TextOnState;
+            Widgets.Label(new Rect(nameRect.x, nameRect.yMax, nameRect.width, rect.height - nameHeight), versionLabel);
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
         }
@@ -218,13 +218,11 @@ public sealed class ModMismatchWindow : Window
         TooltipHandler.TipRegion(rect, () => Tooltip(mod, state), mod.PackageId.GetHashCode() ^ (isSavedSide ? 1 : 2));
     }
 
-    private static string VersionLabel(ModEntry mod, AlignedRow row, bool isSavedSide)
-    {
-        string version = mod.Version ?? "Unknown";
-        return row.State == RowState.VersionChanged && !isSavedSide
-            ? $"ver : {row.Saved!.Version} -> {version}"
-            : $"ver : {version}";
-    }
+    // Nothing for unknown versions: saves made without version data would otherwise repeat "Unknown" on every row.
+    private static string? VersionLabel(ModEntry mod, AlignedRow row, bool isSavedSide) =>
+        mod.Version is null ? null
+        : row.State == RowState.VersionChanged && !isSavedSide ? $"ver : {row.Saved!.Version} -> {mod.Version}"
+        : $"ver : {mod.Version}";
 
     private static string Tooltip(ModEntry mod, RowState state)
     {

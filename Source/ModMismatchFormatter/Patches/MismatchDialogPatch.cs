@@ -3,7 +3,6 @@ using System.Linq;
 using HarmonyLib;
 using Madeline.ModMismatchFormatter.Core;
 using Madeline.ModMismatchFormatter.UI;
-using RimWorld;
 using Verse;
 
 namespace Madeline.ModMismatchFormatter.Patches;
@@ -17,13 +16,9 @@ internal static class MismatchDialogPatch
     {
         bool compareVersions = ModMismatchFormatter.Settings.useVersionCompare;
 
-        if (ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _))
-        {
-            if (!compareVersions || !AnyVersionChanged())
-                return true; // Same mods, same versions: let vanilla check the game version.
-
-            Messages.Message("Checking mismatch for mod and mod versions... please wait", MessageTypeDefOf.SilentInput, false);
-        }
+        // Same mods, same versions: let vanilla check the game version.
+        if (ScribeMetaHeaderUtility.LoadedModsMatchesActiveMods(out _, out _) && (!compareVersions || !AnyVersionChanged()))
+            return true;
 
         Find.WindowStack.Add(new ModMismatchWindow(confirmedAction, compareVersions));
         __result = true;
