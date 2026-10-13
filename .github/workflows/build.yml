@@ -55,6 +55,9 @@ jobs:
   build-1-7:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: windows-latest
+    # If the cached Steam login is rejected, steamcmd waits for a password or a mobile
+    # confirmation forever; fail instead of holding a runner for hours.
+    timeout-minutes: 30
     env:
       STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
       STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
