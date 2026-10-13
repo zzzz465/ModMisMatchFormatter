@@ -1,0 +1,54 @@
+Replaces RimWorld's mod mismatch dialog with a side-by-side, GitHub-style comparison of the mods in your save and the mods you are running now.
+
+[h2]Features[/h2]
+[list]
+[*]Both lists are aligned row by row, so you can see exactly where mods were added, removed or moved.
+[*][b]Added[/b] mods are green, [b]removed[/b] mods red, [b]load order changes[/b] blue and [b]version changes[/b] amber (old -> new version).
+[*]Summary counts, a search box, and toggles to hide unchanged mods or load order changes.
+[*]Hover a row to see the mod's package id and version.
+[*]Load anyway, load the mod list from the save, or save the current mod list, just like the vanilla dialog.
+[/list]
+
+[h2]Version checking[/h2]
+Two options in Mod Settings:
+[list]
+[*][b]Enable writing mod metadata to the save[/b] (on by default): records the version of every running mod in the save header while the game saves. Version checking needs this data.
+[*][b]Enable version checking[/b] (off by default): also opens the window when the mod list is the same but a mod's version differs from the one in the save.
+[/list]
+Versions are read from About/Manifest.xml (the Fluffy's Mod Manager convention) or the modVersion tag in About.xml. A mod without either has no version and is never reported as changed.
+
+[h2]Compatibility[/h2]
+[list]
+[*]RimWorld 1.0 to 1.7, including the new Waylith engine in 1.7.
+[*]Requires Harmony.
+[*]No load order requirements. Safe to add to or remove from an existing save.
+[/list]
+
+[h2]Changelog[/h2]
+[b]v1.2.0[/b]
+[list]
+[*]RimWorld 1.7 (Waylith engine) support. RimWorld 1.6 now loads its own build instead of the 1.5 one.
+[*]Redesigned window: summary and legend, search, filters, compact one-line rows, tooltips, Save mod list button.
+[*]Mods are matched by package id with an optimal alignment; reordered mods are shown as moved instead of removed and added.
+[*]Mod versions are written while the game saves, instead of loading and re-writing the whole save file afterwards.
+[*]Versions are also read from the modVersion tag in About.xml.
+[*]Rows follow the game font size; the old fixed row height could stop the window from drawing at all.
+[/list]
+[b]v1.2[/b] RimWorld 1.4 and 1.5 support, text alignment fix.
+[b]v1.1.36[/b] RimWorld 1.3 support.
+[b]v1.1.35[/b] RimWorld 1.2 support.
+[b]v1.1.34[/b] Fixed an incompatibility with RimWorld 1.1.2597 (reported by Tynan); versions are matched by package id instead of mod name.
+[b]v1.1.33[/b] Depends on the Harmony mod instead of bundling Harmony.
+[b]v1.1.32[/b] RimWorld 1.1 support.
+[b]v1.1.31[/b] Fixed conflicts with Fluffy's Mod Manager and RimSaves.
+[b]v1.1.2[/b] Version checking can be turned on and off in Mod Settings.
+[b]v1.1.0[/b] Version mismatch checking.
+[b]v1.0.0[/b] Initial release.
+
+[h2]Links[/h2]
+[url=https://github.com/zzzz465/ModMisMatchFormatter]Source code and issue tracker on GitHub[/url]
+
+[h2]Thanks[/h2]
+Proxyer for the Japanese translation, HawnHan for the Simplified Chinese translation.
+
+Do you like it? Please upvote and favorite!
