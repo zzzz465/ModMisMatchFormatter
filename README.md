@@ -50,12 +50,19 @@ tests, creates a GitHub release with `ModMismatchFormatter-<tag>.zip` (mod files
 the Steam Workshop item from `About/PublishedFileId.txt` with the same files. Pre-release tags skip
 the Workshop.
 
+The Workshop description lives in [`workshop/description.bbcode`](workshop/description.bbcode) (Steam
+BBCode, at most 8000 characters, no `"` or `\`). Every release replaces the Workshop description with it,
+and the script reads the published text back to check it arrived unchanged. To publish only a
+description change, run the workflow manually with `sync-description`. Title, preview, visibility and
+tags are left alone; steamcmd cannot set tags, so the version tags only change when the item is updated
+from the in-game uploader.
+
 The Workshop upload uses steamcmd with a cached login, from two repository secrets:
 
 - `STEAM_USERNAME`: the account that owns the Workshop item.
 - `STEAM_CONFIG_VDF`: base64 of `config/config.vdf` from a steamcmd that has logged in to that account.
   When it expires, log in with steamcmd again and update the secret.
 
-Running the workflow manually (Actions → release → Run workflow) only checks that this login still works.
+Running the workflow manually (Actions → release → Run workflow) with `login-check` only checks that this login still works.
 
 The assemblies for 1.0–1.5 are prebuilt and no longer rebuilt from source.

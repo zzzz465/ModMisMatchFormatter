@@ -2,14 +2,20 @@ name: release
 
 # Assemblies are built locally (the 1.7 target needs game files) and committed.
 # Pushing a tag like v1.2.0 checks, tests and packages the mod, creates a GitHub release and
-# updates the Steam Workshop item. Tags with a suffix (v1.2.0-beta.1) become GitHub pre-releases
-# and are not uploaded to the Workshop.
-# Running the workflow manually only checks that the Steam login in the secrets still works.
+# updates the Steam Workshop item (files and description from workshop/description.bbcode).
+# Tags with a suffix (v1.2.0-beta.1) become GitHub pre-releases and are not uploaded to the Workshop.
+# Running the workflow manually either checks the Steam login or only syncs the Workshop description.
 
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      mode:
+        description: What to do
+        type: choice
+        options: [login-check, sync-description]
+        default: login-check
 
 permissions:
   contents: write
@@ -118,18 +124,23 @@ jobs:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
         run: |
-          ./.github/scripts/steam-workshop.ps1 -Mode Upload -ContentFolder mod -ChangeNote "${{ github.ref_name }}: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          ./.github/scripts/steam-workshop.ps1 -Mode Upload -ContentFolder mod -DescriptionFile workshop/description.bbcode -ChangeNote "${{ github.ref_name }}: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
 
-  steam-login-check:
+  steam-manual:
     if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check Steam login
+      - name: Steam ${{ inputs.mode }}
         shell: pwsh
         env:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
-        run: ./.github/scripts/steam-workshop.ps1 -Mode LoginCheck
+        run: |
+          if ('${{ inputs.mode }}' -eq 'sync-description') {
+            ./.github/scripts/steam-workshop.ps1 -Mode SyncDescription -DescriptionFile workshop/description.bbcode
+          } else {
+            ./.github/scripts/steam-workshop.ps1 -Mode LoginCheck
+          }
