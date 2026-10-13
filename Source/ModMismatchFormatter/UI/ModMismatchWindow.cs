@@ -12,7 +12,7 @@ namespace Madeline.ModMismatchFormatter.UI;
 /// <summary>Shows the save's mod list and the running mod list side by side, aligned row by row.</summary>
 public sealed class ModMismatchWindow : Window
 {
-    private const float Gap = 10f;
+    private const float Gap = 6f;
     private const float ColumnGap = 16f;
     private const float ToolbarHeight = 24f;
     private const float HeaderHeight = 24f;
@@ -22,7 +22,6 @@ public sealed class ModMismatchWindow : Window
     private readonly Action loadGame;
     private readonly bool showVersions;
     private readonly QuickSearchWidget search = new();
-    private readonly Dictionary<string, string> truncateCache = [];
 
     private IReadOnlyList<AlignedRow> rows = [];
     private List<AlignedRow> visibleRows = [];
@@ -60,14 +59,27 @@ public sealed class ModMismatchWindow : Window
     {
         float y = inRect.y;
 
+        // Title with the summary on the same line; the summary wraps below when it does not fit.
+        string title = "ModsMismatchWarningTitle".Translate();
         Text.Font = GameFont.Medium;
         float titleHeight = Text.LineHeight;
-        Widgets.Label(new Rect(inRect.x, y, inRect.width, titleHeight), "ModsMismatchWarningTitle".Translate());
+        float titleWidth = Text.CalcSize(title).x;
+        Widgets.Label(new Rect(inRect.x, y, titleWidth, titleHeight), title);
         Text.Font = GameFont.Small;
-        y += titleHeight + 4f;
 
-        DrawSummary(new Rect(inRect.x, y, inRect.width, Text.LineHeight));
-        y += Text.LineHeight + Gap;
+        var summary = SummaryEntries();
+        float summaryWidth = summary.Sum(entry => SwatchSize + 4f + Text.CalcSize(entry.Label).x + 18f);
+        if (titleWidth + 24f + summaryWidth <= inRect.width)
+        {
+            DrawSummary(new Rect(inRect.x + titleWidth + 24f, y + (titleHeight - Text.LineHeight) / 2f, summaryWidth, Text.LineHeight), summary);
+            y += titleHeight + Gap;
+        }
+        else
+        {
+            y += titleHeight;
+            DrawSummary(new Rect(inRect.x, y, inRect.width, Text.LineHeight), summary);
+            y += Text.LineHeight + Gap;
+        }
 
         DrawToolbar(new Rect(inRect.x, y, inRect.width, ToolbarHeight));
         y += ToolbarHeight + Gap;
@@ -83,8 +95,10 @@ public sealed class ModMismatchWindow : Window
         DrawButtons(buttons);
     }
 
+    private const float SwatchSize = 12f;
+
     // Colored counts that double as the legend.
-    private void DrawSummary(Rect rect)
+    private List<(RowState State, string Label)> SummaryEntries()
     {
         // A moved mod has one MovedFrom and one MovedTo row; count it once.
         (RowState State, string Key)[] entries =
@@ -95,16 +109,19 @@ public sealed class ModMismatchWindow : Window
             (RowState.VersionChanged, "ModMismatchFormatter_VersionChanged"),
         ];
 
+        return entries
+            .Where(entry => showVersions || entry.State != RowState.VersionChanged)
+            .Select(entry => (entry.State, (string)entry.Key.Translate(counts.TryGetValue(entry.State, out int count) ? count : 0)))
+            .ToList();
+    }
+
+    private static void DrawSummary(Rect rect, List<(RowState State, string Label)> entries)
+    {
         float x = rect.x;
-        foreach (var (state, key) in entries)
+        foreach (var (state, label) in entries)
         {
-            if (state == RowState.VersionChanged && !showVersions)
-                continue;
-
-            string label = key.Translate(counts.TryGetValue(state, out int count) ? count : 0);
             float width = Text.CalcSize(label).x;
-
-            var swatch = new Rect(x, rect.y + (rect.height - 12f) / 2f, 12f, 12f);
+            var swatch = new Rect(x, rect.y + (rect.height - SwatchSize) / 2f, SwatchSize, SwatchSize);
             Widgets.DrawBoxSolid(swatch, Palette.For(state));
             Widgets.Label(new Rect(swatch.xMax + 4f, rect.y, width, rect.height), label);
             x = swatch.xMax + 4f + width + 18f;
@@ -155,9 +172,8 @@ public sealed class ModMismatchWindow : Window
             mod is not null && (search.filter.Matches(mod.Name) || search.filter.Matches(mod.PackageId)));
     }
 
-    private float RowHeight => showVersions
-        ? Text.LineHeightOf(GameFont.Small) + Text.LineHeightOf(GameFont.Tiny)
-        : Text.LineHeightOf(GameFont.Small) + 2f;
+    // One line per row; the version sits at the right end of the same line.
+    private static float RowHeight => Text.LineHeightOf(GameFont.Small) + 2f;
 
     private void DrawRows(Rect outRect, float columnWidth)
     {
@@ -198,18 +214,28 @@ public sealed class ModMismatchWindow : Window
             Widgets.DrawBoxSolid(rect.ContractedBy(0f, 1f), Palette.For(state));
         Widgets.DrawHighlightIfMouseover(rect);
 
-        float nameHeight = Text.LineHeightOf(GameFont.Small);
-        var nameRect = new Rect(rect.x + 4f + MarkWidth, rect.y, rect.width - MarkWidth - 8f, nameHeight);
-
-        Text.Anchor = TextAnchor.MiddleLeft;
-        Widgets.Label(new Rect(rect.x + 4f, rect.y, MarkWidth, nameHeight), Palette.Mark(state));
-        Widgets.Label(nameRect, mod.Name.Truncate(nameRect.width, truncateCache));
-
-        if (showVersions && VersionLabel(mod, row, isSavedSide) is { } versionLabel)
+        // [mark][name ............ version]
+        string? versionLabel = showVersions ? VersionLabel(mod, row, isSavedSide) : null;
+        float versionWidth = 0f;
+        if (versionLabel is not null)
         {
             Text.Font = GameFont.Tiny;
+            versionWidth = Text.CalcSize(versionLabel).x + 6f;
+            Text.Font = GameFont.Small;
+        }
+
+        var nameRect = new Rect(rect.x + 4f + MarkWidth, rect.y, rect.width - MarkWidth - 8f - versionWidth, rect.height);
+
+        Text.Anchor = TextAnchor.MiddleLeft;
+        Widgets.Label(new Rect(rect.x + 4f, rect.y, MarkWidth, rect.height), Palette.Mark(state));
+        Widgets.Label(nameRect, mod.Name.Truncate(nameRect.width));
+
+        if (versionLabel is not null)
+        {
+            Text.Font = GameFont.Tiny;
+            Text.Anchor = TextAnchor.MiddleRight;
             GUI.color = state == RowState.Unchanged ? Color.gray : Palette.TextOnState;
-            Widgets.Label(new Rect(nameRect.x, nameRect.yMax, nameRect.width, rect.height - nameHeight), versionLabel);
+            Widgets.Label(new Rect(nameRect.xMax, rect.y, versionWidth, rect.height), versionLabel);
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
         }
@@ -221,8 +247,8 @@ public sealed class ModMismatchWindow : Window
     // Nothing for unknown versions: saves made without version data would otherwise repeat "Unknown" on every row.
     private static string? VersionLabel(ModEntry mod, AlignedRow row, bool isSavedSide) =>
         mod.Version is null ? null
-        : row.State == RowState.VersionChanged && !isSavedSide ? $"ver : {row.Saved!.Version} -> {mod.Version}"
-        : $"ver : {mod.Version}";
+        : row.State == RowState.VersionChanged && !isSavedSide ? $"{row.Saved!.Version} -> {mod.Version}"
+        : mod.Version;
 
     private static string Tooltip(ModEntry mod, RowState state)
     {
