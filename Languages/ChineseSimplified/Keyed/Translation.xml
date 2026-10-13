@@ -9,4 +9,15 @@
   <writeMetaDescription>将Mod元数据写入存档(元数据包含Mod版本等信息)。推荐启用。</writeMetaDescription>
   <!-- contributed by HawnHan -->
 
+  <ModMismatchFormatter_Added>新增：{0}</ModMismatchFormatter_Added>
+  <ModMismatchFormatter_Removed>移除：{0}</ModMismatchFormatter_Removed>
+  <ModMismatchFormatter_Moved>加载顺序变更：{0}</ModMismatchFormatter_Moved>
+  <ModMismatchFormatter_VersionChanged>版本变更：{0}</ModMismatchFormatter_VersionChanged>
+  <ModMismatchFormatter_ShowUnchanged>显示未变更的Mod</ModMismatchFormatter_ShowUnchanged>
+  <ModMismatchFormatter_ShowOrderChanges>显示加载顺序变更</ModMismatchFormatter_ShowOrderChanges>
+  <ModMismatchFormatter_State_Added>存档中没有此Mod，是之后新增的。</ModMismatchFormatter_State_Added>
+  <ModMismatchFormatter_State_Removed>存档中有此Mod，但当前未载入。</ModMismatchFormatter_State_Removed>
+  <ModMismatchFormatter_State_MovedFrom>存档时的位置。此Mod仍在载入，但加载顺序已改变。</ModMismatchFormatter_State_MovedFrom>
+  <ModMismatchFormatter_State_MovedTo>当前位置。存档时此Mod位于其他位置。</ModMismatchFormatter_State_MovedTo>
+  <ModMismatchFormatter_State_VersionChanged>与存档中记录的版本不同。</ModMismatchFormatter_State_VersionChanged>
 </LanguageData>

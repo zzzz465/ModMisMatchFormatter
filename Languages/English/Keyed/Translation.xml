@@ -7,4 +7,15 @@
     <useVersionCompareDescription>Enable Version checking between saved file and current version. check steam workshop for the detailed description.</useVersionCompareDescription>
     <EnableWritingCustomVersionHeader>Enable writing mod metadata to the save</EnableWritingCustomVersionHeader>
     <writeMetaDescription>Enable writing mod metadata to the save (mod versions, etc). enable recommended</writeMetaDescription>
+    <ModMismatchFormatter_Added>Added: {0}</ModMismatchFormatter_Added>
+    <ModMismatchFormatter_Removed>Removed: {0}</ModMismatchFormatter_Removed>
+    <ModMismatchFormatter_Moved>Load order changed: {0}</ModMismatchFormatter_Moved>
+    <ModMismatchFormatter_VersionChanged>Version changed: {0}</ModMismatchFormatter_VersionChanged>
+    <ModMismatchFormatter_ShowUnchanged>Show unchanged mods</ModMismatchFormatter_ShowUnchanged>
+    <ModMismatchFormatter_ShowOrderChanges>Show load order changes</ModMismatchFormatter_ShowOrderChanges>
+    <ModMismatchFormatter_State_Added>Not in the save; added since.</ModMismatchFormatter_State_Added>
+    <ModMismatchFormatter_State_Removed>In the save, but not running now.</ModMismatchFormatter_State_Removed>
+    <ModMismatchFormatter_State_MovedFrom>Position in the save. This mod still runs, but at a different place in the load order now.</ModMismatchFormatter_State_MovedFrom>
+    <ModMismatchFormatter_State_MovedTo>Current position. This mod was at a different place in the save's load order.</ModMismatchFormatter_State_MovedTo>
+    <ModMismatchFormatter_State_VersionChanged>The version differs from the one recorded in the save.</ModMismatchFormatter_State_VersionChanged>
 </LanguageData>

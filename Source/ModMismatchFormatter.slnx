@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ModMismatchFormatter.Tests/ModMismatchFormatter.Tests.csproj" />
+  <Project Path="ModMismatchFormatter/ModMismatchFormatter.csproj" />
+</Solution>

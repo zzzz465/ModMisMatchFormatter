@@ -1,7 +1,10 @@
+// Verbatim copy of the pre-refactor alignment code (commit bbb3964), kept as a test oracle.
+#nullable disable
+#pragma warning disable
 using System;
 using System.Collections.Generic;
 
-namespace Madeline.ModMismatchFormatter
+namespace Legacy
 {
     public class ModPair
     {

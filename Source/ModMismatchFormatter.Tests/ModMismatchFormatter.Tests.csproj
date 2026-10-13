@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests the engine-independent code in ModMismatchFormatter/Core without referencing the game. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ModMismatchFormatter\Core\**\*.cs" LinkBase="Core" />
+    <Compile Include="..\ModMismatchFormatter\Patches\CallInserter.cs" Link="Patches\CallInserter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <!-- Same Harmony as the RimWorld 1.7 Harmony mod, running on CoreCLR like Waylith. -->
+    <PackageReference Include="Lib.Harmony" Version="3.0.0-rc.2" />
+  </ItemGroup>
+
+</Project>

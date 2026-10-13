@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    net472  -> RimWorld 1.6 (Unity / Mono)       -> ../../1.6/Assemblies
+    net10.0 -> RimWorld 1.7 (Waylith / CoreCLR)  -> ../../1.7/Assemblies
+    The net10.0 target is only built when RimWorld17Dir is set (see Directory.Build.props).
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <TargetFrameworks Condition="'$(RimWorld17Dir)' != ''">net472;net10.0</TargetFrameworks>
+    <!-- Keep the historical assembly name so existing installs replace the old DLL. -->
+    <AssemblyName>ModMisMatchWindowPatch</AssemblyName>
+    <RootNamespace>Madeline.ModMismatchFormatter</RootNamespace>
+    <Version>1.2.0</Version>
+    <DebugType>none</DebugType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+    <OutputPath>..\..\1.6\Assemblies\</OutputPath>
+    <DefineConstants>$(DefineConstants);RW16</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <OutputPath>..\..\1.7\Assemblies\</OutputPath>
+    <DefineConstants>$(DefineConstants);RW17</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="2.4.3" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Reference Include="Assembly-CSharp" HintPath="$(RimWorld17Dir)\Assembly-CSharp.dll" Private="false" />
+    <!-- Waylith redirects UnityEngine* to UnityStubs at runtime; compile against it directly. -->
+    <Reference Include="UnityStubs" HintPath="$(RimWorld17Dir)\UnityStubs.dll" Private="false" />
+    <!-- The Harmony mod ships Harmony 3.0 (net10.0) for RimWorld 1.7. -->
+    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
