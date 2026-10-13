@@ -1,0 +1,90 @@
+name: release
+
+# Assemblies are built locally (the 1.7 target needs game files) and committed.
+# Pushing a tag like v1.2.0 checks, tests and packages the mod, then creates a GitHub release.
+# Tags with a suffix (v1.2.0-beta.1) become pre-releases.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the assembly freshness check reads history
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          version="${version%%-*}"
+          manifest=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('About/Manifest.xml').getroot().findtext('version'))")
+          project=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('Source/ModMismatchFormatter/ModMismatchFormatter.csproj').getroot().findtext('PropertyGroup/Version'))")
+          echo "tag $version, About/Manifest.xml $manifest, csproj $project"
+          if [ "$version" != "$manifest" ] || [ "$version" != "$project" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME must match About/Manifest.xml ($manifest) and the csproj <Version> ($project)."
+            exit 1
+          fi
+
+      - name: Check assemblies
+        run: |
+          source_time=$(git log -1 --format=%ct -- Source/ModMismatchFormatter)
+          for v in 1.6 1.7; do
+            dll="$v/Assemblies/ModMisMatchWindowPatch.dll"
+            if [ ! -f "$dll" ]; then
+              echo "::error::$dll is missing. Build locally and commit it."
+              exit 1
+            fi
+            # A warning, not an error: a source change that does not change the IL leaves the DLL untouched.
+            if [ "$(git log -1 --format=%ct -- "$dll")" -lt "$source_time" ]; then
+              echo "::warning::$dll was committed before the last change in Source/ModMismatchFormatter. Make sure it was rebuilt."
+            fi
+          done
+
+      - name: Validate mod XML
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, xml.etree.ElementTree as ET
+          files = [p for p in pathlib.Path('.').rglob('*.xml') if not any(part in ('bin', 'obj', '.git') for part in p.parts)]
+          failed = False
+          for path in files:
+              try:
+                  ET.parse(path)
+              except ET.ParseError as e:
+                  print(f'::error file={path}::{e}')
+                  failed = True
+          print(f'checked {len(files)} XML files')
+          sys.exit(1 if failed else 0)
+          PY
+
+      - name: Test
+        run: dotnet test --project Source/ModMismatchFormatter.Tests/ModMismatchFormatter.Tests.csproj -c Release
+
+      - name: Package
+        run: |
+          shopt -s nullglob
+          stage=dist/ModMismatchFormatter
+          mkdir -p "$stage"
+          # Mod content only: metadata, translations and the per-version assembly folders.
+          cp -r About Languages LoadFolders.xml README.md [0-9]* v[0-9]* "$stage/"
+          asset="dist/ModMismatchFormatter-$GITHUB_REF_NAME.zip"
+          (cd dist && zip -qr "../$asset" ModMismatchFormatter)
+          unzip -l "$asset"
+          echo "ASSET=$asset" >> "$GITHUB_ENV"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" "$ASSET" --title "$GITHUB_REF_NAME" --generate-notes --verify-tag "${flags[@]}"

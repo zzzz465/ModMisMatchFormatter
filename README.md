@@ -35,18 +35,17 @@ branch; otherwise set it in `Source/Local.props` (git-ignored):
 </Project>
 ```
 
-## CI
+## Releasing
 
-`.github/workflows/build.yml` has two jobs:
+The assemblies are built locally and committed; CI never downloads the game.
 
-- `build` (Ubuntu): validates the mod XML, builds the 1.6 target and runs the tests.
-- `build-1-7` (Windows): downloads the RimWorld unstable branch with steamcmd, builds the 1.7
-  target against it and uploads the DLL. It needs two repository secrets and is skipped with a
-  warning when they are missing:
-  - `STEAM_USERNAME`: a Steam account that owns RimWorld.
-  - `STEAM_CONFIG_VDF`: base64 of `config/config.vdf` from a steamcmd that has logged in to that
-    account (so no Steam Guard code is needed). It expires eventually and must then be refreshed.
+1. Bump the version in `About/Manifest.xml` and `<Version>` in `Source/ModMismatchFormatter/ModMismatchFormatter.csproj`.
+2. Build both targets (`dotnet build Source/ModMismatchFormatter.slnx -c Release`, with RimWorld 1.7
+   available) and commit `1.6/Assemblies` and `1.7/Assemblies`.
+3. Push a tag: `git tag v1.2.0 && git push origin v1.2.0`. Tags with a suffix (`v1.2.0-beta.1`) become pre-releases.
 
-  Game files are not cached or uploaded, and the job does not run for pull requests from forks.
+`.github/workflows/release.yml` then checks that the tag matches both versions, that the committed
+assemblies exist (and warns if they predate the last source change), validates the XML, runs the
+tests, and creates a GitHub release with `ModMismatchFormatter-<tag>.zip` (mod files only).
 
 The assemblies for 1.0–1.5 are prebuilt and no longer rebuilt from source.
