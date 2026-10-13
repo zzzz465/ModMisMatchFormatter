@@ -117,7 +117,8 @@ jobs:
         env:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
-        run: ./.github/scripts/steam-workshop.ps1 -Mode Upload -ContentFolder mod -ChangeNote "${{ github.ref_name }}: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+        run: |
+          ./.github/scripts/steam-workshop.ps1 -Mode Upload -ContentFolder mod -ChangeNote "${{ github.ref_name }}: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
 
   steam-login-check:
     if: github.event_name == 'workflow_dispatch'
