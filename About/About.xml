@@ -14,16 +14,11 @@
 		<li>1.7</li>
 	</supportedVersions>
 	<packageId>Madeline.ModMismatchFormatter</packageId>
-	<description>==english description==
-		this mod provides a new GUI Window for the Mod mismatch window instead of default CUI one.
-		including version mismatch checking.
+	<description>Replaces the mod mismatch dialog with a side-by-side comparison of the mods in your save and the mods running now. Added, removed, reordered and version-changed mods are colored and counted, with search and filters.
 
-		this mod uses Manifest.xml for version checking, introduced by Fluffy's Mod manager.
-		if you're a developer and you want to add version support, please add version in
-		Manifest.xml !
+Version checking (Mod Settings): mod versions are recorded in the save and compared on load. Versions are read from About/Manifest.xml or the modVersion tag in About.xml. Mod authors: add either one to get version checking.
 
-		check Fluffy's Mod manager Github page for detailed description.
-	</description>
+Source and issues: https://github.com/zzzz465/ModMisMatchFormatter</description>
 
 	<modDependencies>
 		<li>
