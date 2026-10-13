@@ -3,7 +3,7 @@ using Verse;
 
 namespace Madeline.ModMismatchFormatter;
 
-// The class name is part of the settings file name (Mod_<packageId>_ModMismatchFormatter.xml); do not rename.
+// The class name is part of the settings file name (Mod_<mod folder>_ModMismatchFormatter.xml); do not rename.
 public sealed class ModMismatchFormatter : Mod
 {
     public ModMismatchFormatter(ModContentPack content) : base(content)
