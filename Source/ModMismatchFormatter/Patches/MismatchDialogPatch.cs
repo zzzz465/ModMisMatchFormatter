@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using HarmonyLib;
+using Madeline.ModMismatchFormatter.Core;
 using Madeline.ModMismatchFormatter.UI;
 using RimWorld;
 using Verse;
@@ -30,5 +31,5 @@ internal static class MismatchDialogPatch
     }
 
     private static bool AnyVersionChanged() =>
-        LoadedModManager.RunningMods.Any(mod => ModVersions.Saved(mod.PackageId) != ModVersions.Running(mod));
+        LoadedModManager.RunningMods.Any(mod => ModEntry.VersionChanged(ModVersions.Saved(mod.PackageId), ModVersions.Running(mod)));
 }

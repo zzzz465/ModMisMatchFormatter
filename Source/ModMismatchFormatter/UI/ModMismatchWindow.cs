@@ -12,17 +12,23 @@ namespace Madeline.ModMismatchFormatter.UI;
 /// <summary>Shows the save's mod list and the running mod list side by side, aligned row by row.</summary>
 public sealed class ModMismatchWindow : Window
 {
-    private const float TitleHeight = 36f;
-    private const float HeaderHeight = 26f;
+    private const float Gap = 10f;
     private const float ColumnGap = 16f;
-    private const float SeparatorHeight = 2f;
-    private const float ButtonHeight = 40f;
-    private const float ButtonMargin = 10f;
+    private const float ToolbarHeight = 24f;
+    private const float HeaderHeight = 24f;
+    private const float ButtonHeight = 38f;
+    private const float MarkWidth = 14f;
 
     private readonly Action loadGame;
     private readonly bool showVersions;
+    private readonly QuickSearchWidget search = new();
     private readonly Dictionary<string, string> truncateCache = [];
+
     private IReadOnlyList<AlignedRow> rows = [];
+    private List<AlignedRow> visibleRows = [];
+    private Dictionary<RowState, int> counts = [];
+    private int savedCount;
+    private int activeCount;
     private Vector2 scrollPosition;
 
     public ModMismatchWindow(Action loadGame, bool showVersions)
@@ -30,114 +36,222 @@ public sealed class ModMismatchWindow : Window
         this.loadGame = loadGame;
         this.showVersions = showVersions;
         doCloseX = true;
+        absorbInputAroundWindow = true;
     }
 
-    public override Vector2 InitialSize => new(650f, 700f);
+    public override Vector2 InitialSize => new(860f, 760f);
+
+    private static Settings Settings => ModMismatchFormatter.Settings;
 
     public override void PreOpen()
     {
         base.PreOpen();
-        rows = ModListAligner.Align(SavedMods(), RunningMods(), mod => mod.Name);
+
+        var saved = SavedMods();
+        var active = RunningMods();
+        savedCount = saved.Count;
+        activeCount = active.Count;
+        rows = ModListAligner.Align(saved, active);
+        counts = rows.GroupBy(row => row.State).ToDictionary(group => group.Key, group => group.Count());
+        RefreshVisibleRows();
     }
 
     public override void DoWindowContents(Rect inRect)
     {
-        Text.Font = GameFont.Small;
-        Widgets.Label(new Rect(inRect.x, inRect.y, inRect.width, TitleHeight), "ModsMismatchWarningTitle".Translate());
+        float y = inRect.y;
 
-        var buttons = new Rect(inRect.x, inRect.yMax - ButtonHeight - ButtonMargin, inRect.width, ButtonHeight);
-        var list = new Rect(inRect.x, inRect.y + TitleHeight + HeaderHeight, inRect.width, buttons.y - ButtonMargin - (inRect.y + TitleHeight + HeaderHeight));
+        Text.Font = GameFont.Medium;
+        float titleHeight = Text.LineHeight;
+        Widgets.Label(new Rect(inRect.x, y, inRect.width, titleHeight), "ModsMismatchWarningTitle".Translate());
+        Text.Font = GameFont.Small;
+        y += titleHeight + 4f;
+
+        DrawSummary(new Rect(inRect.x, y, inRect.width, Text.LineHeight));
+        y += Text.LineHeight + Gap;
+
+        DrawToolbar(new Rect(inRect.x, y, inRect.width, ToolbarHeight));
+        y += ToolbarHeight + Gap;
+
+        var buttons = new Rect(inRect.x, inRect.yMax - ButtonHeight, inRect.width, ButtonHeight);
+        var list = new Rect(inRect.x, y + HeaderHeight, inRect.width, buttons.y - Gap - (y + HeaderHeight));
         float columnWidth = (list.width - GenUI.ScrollBarWidth - ColumnGap) / 2f;
 
-        Widgets.Label(new Rect(list.x, list.y - HeaderHeight, columnWidth, HeaderHeight), "SaveModListTitle".Translate());
-        Widgets.Label(new Rect(list.x + columnWidth + ColumnGap, list.y - HeaderHeight, columnWidth, HeaderHeight), "ActiveModListTitle".Translate());
+        Widgets.Label(new Rect(list.x, y, columnWidth, HeaderHeight), $"{"SaveModListTitle".Translate()} ({savedCount})");
+        Widgets.Label(new Rect(list.x + columnWidth + ColumnGap, y, columnWidth, HeaderHeight), $"{"ActiveModListTitle".Translate()} ({activeCount})");
 
         DrawRows(list, columnWidth);
-        DrawButtons(buttons, columnWidth);
+        DrawButtons(buttons);
+    }
+
+    // Colored counts that double as the legend.
+    private void DrawSummary(Rect rect)
+    {
+        // A moved mod has one MovedFrom and one MovedTo row; count it once.
+        (RowState State, string Key)[] entries =
+        [
+            (RowState.Added, "ModMismatchFormatter_Added"),
+            (RowState.Removed, "ModMismatchFormatter_Removed"),
+            (RowState.MovedFrom, "ModMismatchFormatter_Moved"),
+            (RowState.VersionChanged, "ModMismatchFormatter_VersionChanged"),
+        ];
+
+        float x = rect.x;
+        foreach (var (state, key) in entries)
+        {
+            if (state == RowState.VersionChanged && !showVersions)
+                continue;
+
+            string label = key.Translate(counts.TryGetValue(state, out int count) ? count : 0);
+            float width = Text.CalcSize(label).x;
+
+            var swatch = new Rect(x, rect.y + (rect.height - 12f) / 2f, 12f, 12f);
+            Widgets.DrawBoxSolid(swatch, Palette.For(state));
+            Widgets.Label(new Rect(swatch.xMax + 4f, rect.y, width, rect.height), label);
+            x = swatch.xMax + 4f + width + 18f;
+        }
+    }
+
+    private void DrawToolbar(Rect rect)
+    {
+        search.OnGUI(new Rect(rect.x, rect.y, Mathf.Min(260f, rect.width / 3f), rect.height), RefreshVisibleRows);
+
+        float x = rect.x + Mathf.Min(260f, rect.width / 3f) + 24f;
+        bool changed = Toggle(ref x, rect, "ModMismatchFormatter_ShowUnchanged", ref Settings.showUnchanged);
+        changed |= Toggle(ref x, rect, "ModMismatchFormatter_ShowOrderChanges", ref Settings.showOrderChanges);
+
+        if (changed)
+        {
+            Settings.Write();
+            RefreshVisibleRows();
+        }
+    }
+
+    private static bool Toggle(ref float x, Rect toolbar, string key, ref bool value)
+    {
+        string label = key.Translate();
+        float width = Text.CalcSize(label).x + 24f + 6f;
+        bool before = value;
+        Widgets.CheckboxLabeled(new Rect(x, toolbar.y, width, toolbar.height), label, ref value, placeCheckboxNearText: true);
+        x += width + 24f;
+        return before != value;
+    }
+
+    private void RefreshVisibleRows()
+    {
+        visibleRows = rows.Where(IsVisible).ToList();
+        search.noResultsMatched = search.filter.Active && visibleRows.Count == 0;
+    }
+
+    private bool IsVisible(AlignedRow row)
+    {
+        if (!Settings.showUnchanged && row.State == RowState.Unchanged)
+            return false;
+        if (!Settings.showOrderChanges && row.State is RowState.MovedFrom or RowState.MovedTo)
+            return false;
+        if (!search.filter.Active)
+            return true;
+
+        return new[] { row.Saved, row.Active }.Any(mod =>
+            mod is not null && (search.filter.Matches(mod.Name) || search.filter.Matches(mod.PackageId)));
     }
 
     private float RowHeight => showVersions
         ? Text.LineHeightOf(GameFont.Small) + Text.LineHeightOf(GameFont.Tiny)
-        : Text.LineHeightOf(GameFont.Small);
+        : Text.LineHeightOf(GameFont.Small) + 2f;
 
     private void DrawRows(Rect outRect, float columnWidth)
     {
         Widgets.DrawBoxSolid(outRect, Palette.Background);
 
-        float stride = RowHeight + SeparatorHeight;
-        var viewRect = new Rect(0f, 0f, outRect.width - GenUI.ScrollBarWidth, rows.Count * stride);
+        float rowHeight = RowHeight;
+        var viewRect = new Rect(0f, 0f, outRect.width - GenUI.ScrollBarWidth, visibleRows.Count * rowHeight);
 
         Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
-        for (int i = 0; i < rows.Count; i++)
+        // Only rows inside the viewport are drawn; mod lists can have well over a thousand entries.
+        int first = Mathf.Max(0, Mathf.FloorToInt(scrollPosition.y / rowHeight));
+        int last = Mathf.Min(visibleRows.Count - 1, Mathf.CeilToInt((scrollPosition.y + outRect.height) / rowHeight));
+        for (int i = first; i <= last; i++)
         {
-            float y = i * stride;
+            var row = visibleRows[i];
+            var rowRect = new Rect(0f, i * rowHeight, viewRect.width, rowHeight);
+            if (i % 2 == 0)
+                Widgets.DrawLightHighlight(rowRect);
 
-            // Only draw what is visible; mod lists can be very long.
-            if (y + stride < scrollPosition.y || y > scrollPosition.y + outRect.height)
-                continue;
-
-            var row = rows[i];
-            DrawCell(new Rect(0f, y, columnWidth, RowHeight), row.Saved, row.State == RowState.Removed ? RowState.Removed : RowState.Unchanged);
-            DrawCell(new Rect(columnWidth + ColumnGap, y, columnWidth, RowHeight), row.Active, row.State == RowState.Removed ? RowState.Unchanged : row.State);
-
-            Widgets.DrawBoxSolid(new Rect(0f, y + RowHeight, columnWidth, SeparatorHeight), Color.grey);
-            Widgets.DrawBoxSolid(new Rect(columnWidth + ColumnGap, y + RowHeight, columnWidth, SeparatorHeight), Color.grey);
+            DrawCell(new Rect(0f, rowRect.y, columnWidth, rowHeight), row.Saved, row, isSavedSide: true);
+            DrawCell(new Rect(columnWidth + ColumnGap, rowRect.y, columnWidth, rowHeight), row.Active, row, isSavedSide: false);
         }
         Widgets.EndScrollView();
     }
 
-    private void DrawCell(Rect rect, ModEntry? mod, RowState state)
+    private void DrawCell(Rect rect, ModEntry? mod, AlignedRow row, bool isSavedSide)
     {
         if (mod is null)
         {
-            Widgets.DrawBoxSolid(rect, Palette.Background);
+            Widgets.DrawBoxSolid(rect.ContractedBy(0f, 1f), Palette.EmptyCell);
             return;
         }
 
-        Widgets.DrawBoxSolid(rect, Palette.For(state));
+        // Each state belongs to one side: removals/old positions on the left, the rest on the right.
+        bool ownsState = row.State is RowState.Removed or RowState.MovedFrom ? isSavedSide : !isSavedSide;
+        var state = ownsState ? row.State : RowState.Unchanged;
+        if (state != RowState.Unchanged)
+            Widgets.DrawBoxSolid(rect.ContractedBy(0f, 1f), Palette.For(state));
+        Widgets.DrawHighlightIfMouseover(rect);
 
-        var markRect = new Rect(rect.x + 4f, rect.y, 12f, rect.height);
-        var textRect = new Rect(markRect.xMax + 2f, rect.y, rect.xMax - markRect.xMax - 4f, rect.height);
         float nameHeight = Text.LineHeightOf(GameFont.Small);
+        var nameRect = new Rect(rect.x + 4f + MarkWidth, rect.y, rect.width - MarkWidth - 8f, nameHeight);
 
         Text.Anchor = TextAnchor.MiddleLeft;
-        Text.Font = GameFont.Small;
-        Widgets.Label(new Rect(markRect.x, rect.y, markRect.width, nameHeight), Mark(state));
-        Widgets.Label(new Rect(textRect.x, rect.y, textRect.width, nameHeight), mod.Name.Truncate(textRect.width, truncateCache));
+        Widgets.Label(new Rect(rect.x + 4f, rect.y, MarkWidth, nameHeight), Palette.Mark(state));
+        Widgets.Label(nameRect, mod.Name.Truncate(nameRect.width, truncateCache));
 
         if (showVersions)
         {
             Text.Font = GameFont.Tiny;
-            Widgets.Label(new Rect(textRect.x, rect.y + nameHeight, textRect.width, rect.height - nameHeight), $"ver : {mod.Version ?? "Unknown"}");
+            GUI.color = Color.gray;
+            Widgets.Label(new Rect(nameRect.x, nameRect.yMax, nameRect.width, rect.height - nameHeight), VersionLabel(mod, row, isSavedSide));
+            GUI.color = Color.white;
+            Text.Font = GameFont.Small;
         }
-
-        Text.Font = GameFont.Small;
         Text.Anchor = TextAnchor.UpperLeft;
 
-        TooltipHandler.TipRegion(rect, $"{mod.Name}\n{mod.PackageId}");
+        TooltipHandler.TipRegion(rect, () => Tooltip(mod, state), mod.PackageId.GetHashCode() ^ (isSavedSide ? 1 : 2));
     }
 
-    private static string Mark(RowState state) => state switch
+    private static string VersionLabel(ModEntry mod, AlignedRow row, bool isSavedSide)
     {
-        RowState.Added => "+",
-        RowState.Removed => "-",
-        RowState.VersionChanged => "?",
-        _ => "",
-    };
+        string version = mod.Version ?? "Unknown";
+        return row.State == RowState.VersionChanged && !isSavedSide
+            ? $"ver : {row.Saved!.Version} -> {version}"
+            : $"ver : {version}";
+    }
 
-    private void DrawButtons(Rect area, float columnWidth)
+    private static string Tooltip(ModEntry mod, RowState state)
     {
-        float buttonWidth = columnWidth - 50f;
-        float leftX = area.x + (columnWidth - buttonWidth) / 2f;
-        float rightX = area.x + columnWidth + ColumnGap + (columnWidth - buttonWidth) / 2f;
+        string text = $"{mod.Name}\n{mod.PackageId}";
+        if (mod.Version is not null)
+            text += $"\nver : {mod.Version}";
+        if (state != RowState.Unchanged)
+            text += $"\n\n{$"ModMismatchFormatter_State_{state}".Translate()}";
+        return text;
+    }
 
-        if (Widgets.ButtonText(new Rect(leftX, area.y, buttonWidth, area.height), "ChangeLoadedMods".Translate()))
+    private void DrawButtons(Rect area)
+    {
+        const int count = 3;
+        float width = (area.width - Gap * (count - 1)) / count;
+        Rect Button(int i) => new(area.x + i * (width + Gap), area.y, width, area.height);
+
+        if (Widgets.ButtonText(Button(0), "ChangeLoadedMods".Translate()))
         {
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                 "ConfirmLoadSaveList".Translate(), ChangeLoadedModsToSave, destructive: true));
         }
 
-        if (Widgets.ButtonText(new Rect(rightX, area.y, buttonWidth, area.height), "LoadAnyway".Translate()))
+        if (Widgets.ButtonText(Button(1), "SaveModList".Translate()))
+            SaveRunningModList();
+
+        if (Widgets.ButtonText(Button(2), "LoadAnyway".Translate()))
             LoadAnyway();
     }
 
@@ -171,6 +285,19 @@ public sealed class ModMismatchWindow : Window
         ModsConfig.RestartFromChangedMods();
     }
 
+    // Mirrors vanilla Dialog_ModMismatch: save the running mod list as a preset.
+    private static void SaveRunningModList()
+    {
+        SoundDefOf.Click.PlayOneShotOnCamera();
+        var running = LoadedModManager.RunningMods.ToList();
+        var modList = new ModList
+        {
+            ids = running.Select(mod => mod.PackageId.ToLower()).ToList(),
+            names = running.Select(mod => mod.Name).ToList(),
+        };
+        Find.WindowStack.Add(new Dialog_ModList_Save(modList));
+    }
+
     private List<ModEntry> SavedMods()
     {
         var ids = ScribeMetaHeaderUtility.loadedModIdsList ?? [];
@@ -183,6 +310,6 @@ public sealed class ModMismatchWindow : Window
 
     private List<ModEntry> RunningMods() =>
         LoadedModManager.RunningMods
-            .Select(mod => new ModEntry(mod.PackageId, mod.Name, showVersions ? ModVersions.Running(mod) : null))
+            .Select(mod => new ModEntry(mod.PackageId, mod.Name, showVersions ? ModVersions.Running(mod) : null, mod.FolderName))
             .ToList();
 }
