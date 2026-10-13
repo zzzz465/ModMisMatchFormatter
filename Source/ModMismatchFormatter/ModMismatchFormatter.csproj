@@ -15,9 +15,6 @@
     <DebugType>none</DebugType>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateDependencyFile>false</GenerateDependencyFile>
-    <!-- Legacy code is not nullable-annotated yet. -->
-    <Nullable>disable</Nullable>
-    <NoWarn>$(NoWarn);CS0162</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
@@ -41,10 +38,6 @@
     <Reference Include="UnityStubs" HintPath="$(RimWorld17Dir)\UnityStubs.dll" Private="false" />
     <!-- The Harmony mod ships Harmony 3.0 (net10.0) for RimWorld 1.7. -->
     <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" ExcludeAssets="runtime" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Refactored\UITester.cs" />
   </ItemGroup>
 
 </Project>

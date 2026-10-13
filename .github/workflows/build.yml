@@ -40,6 +40,9 @@ jobs:
       - name: Build
         run: dotnet build Source/ModMismatchFormatter.slnx -c Release
 
+      - name: Test
+        run: dotnet test --project Source/ModMismatchFormatter.Tests/ModMismatchFormatter.Tests.csproj -c Release --no-build
+
       - uses: actions/upload-artifact@v4
         with:
           name: assemblies-1.6
